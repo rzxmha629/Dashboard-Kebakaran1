@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Dashboard Rekap Kebakaran</title>
 
-<!-- CSV PARSER (WAJIB) -->
+<!-- CSV Parser -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -40,14 +40,7 @@ h1{color:#ff6b6b;margin-bottom:10px}
 .seribu{color:#feca57}
 .total{color:#ff6b6b}
 
-select{
- padding:8px 12px;
- margin-bottom:15px;
- border-radius:6px;
- border:none;
-}
-
-/* TABEL */
+/* TABLE */
 table{
  width:100%;
  border-collapse:collapse;
@@ -69,11 +62,6 @@ tr:nth-child(even){background:#141824}
 <body>
 
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
-
-<select id="bulanSelect" onchange="loadBulan()">
- <option value="januari">Januari</option>
- <option value="februari">Februari</option>
-</select>
 
 <div class="dashboard">
  <div class="card"><h2>Jakarta Barat</h2><div class="count jakbar" id="c_jb">0</div></div>
@@ -103,19 +91,15 @@ tr:nth-child(even){background:#141824}
 
 <script>
 // =======================
-// GOOGLE SHEET (FINAL)
+// LINK CSV PUBLIK (FINAL)
 // =======================
-const SHEET_URL = {
-  januari: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/export?format=csv&gid=1241106342",
-  februari: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/export?format=csv&gid=1284284298"
-};
+const SHEET_URL =
+ "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
 const tbody = document.getElementById("tbody");
 
-function loadBulan(){
-  const bulan = document.getElementById("bulanSelect").value;
-
-  Papa.parse(SHEET_URL[bulan], {
+function loadData(){
+  Papa.parse(SHEET_URL, {
     download: true,
     header: true,
     skipEmptyLines: true,
@@ -139,6 +123,9 @@ function render(rows){
   };
 
   rows.forEach(r=>{
+    // lewati header dobel (karena publish entire doc)
+    if(r["Jenis Kejadian"] === "Jenis Kejadian") return;
+
     const jenis = (r["Jenis Kejadian"] || "").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
@@ -170,17 +157,17 @@ function render(rows){
     tbody.appendChild(tr);
   });
 
-  document.getElementById("c_jb").innerText=count["Jakarta Barat"];
-  document.getElementById("c_jp").innerText=count["Jakarta Pusat"];
-  document.getElementById("c_js").innerText=count["Jakarta Selatan"];
-  document.getElementById("c_jt").innerText=count["Jakarta Timur"];
-  document.getElementById("c_ju").innerText=count["Jakarta Utara"];
-  document.getElementById("c_ks").innerText=count["Kepulauan Seribu"];
-  document.getElementById("c_total").innerText=
+  document.getElementById("c_jb").innerText = count["Jakarta Barat"];
+  document.getElementById("c_jp").innerText = count["Jakarta Pusat"];
+  document.getElementById("c_js").innerText = count["Jakarta Selatan"];
+  document.getElementById("c_jt").innerText = count["Jakarta Timur"];
+  document.getElementById("c_ju").innerText = count["Jakarta Utara"];
+  document.getElementById("c_ks").innerText = count["Kepulauan Seribu"];
+  document.getElementById("c_total").innerText =
     Object.values(count).reduce((a,b)=>a+b,0);
 }
 
-window.onload = loadBulan;
+window.onload = loadData;
 </script>
 
 </body>
