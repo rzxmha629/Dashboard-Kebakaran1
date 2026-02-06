@@ -4,56 +4,44 @@
 <meta charset="UTF-8">
 <title>Dashboard Rekap Kebakaran</title>
 
-<!-- CSV Parser -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body{
- font-family:Segoe UI,Arial;
- background:#0f1115;
- color:#eaeaea;
- margin:20px;
+  font-family:Segoe UI,Arial;
+  background:#0f1115;
+  color:#eaeaea;
+  margin:20px;
 }
-h1{color:#ff6b6b;margin-bottom:10px}
+h1{color:#ff6b6b}
 
-/* DASHBOARD */
 .dashboard{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
- gap:14px;
- margin-bottom:20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
+  margin-bottom:20px;
 }
 .card{
- background:linear-gradient(145deg,#1b1f2a,#11141b);
- border-radius:14px;
- padding:18px;
- box-shadow:0 10px 25px rgba(0,0,0,.45);
+  background:#161a24;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.45);
 }
-.card h2{margin:0;font-size:15px;color:#aaa}
-.card .count{font-size:42px;font-weight:800;margin-top:6px}
+.card h2{margin:0;font-size:14px;color:#aaa}
+.card .count{font-size:40px;font-weight:800}
 
-.jakbar{color:#ff9f43}
-.jakpus{color:#54a0ff}
-.jaksel{color:#1dd1a1}
-.jaktim{color:#f368e0}
-.jakut{color:#48dbfb}
-.seribu{color:#feca57}
-.total{color:#ff6b6b}
-
-/* TABLE */
 table{
- width:100%;
- border-collapse:collapse;
- margin-top:15px;
- font-size:13px;
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
 }
 th,td{
- border:1px solid #2a2e3b;
- padding:6px;
+  border:1px solid #2a2e3b;
+  padding:6px;
 }
 th{
- background:#1c2130;
- color:#ffb3b3;
+  background:#1c2130;
+  color:#ffb3b3;
 }
 tr:nth-child(even){background:#141824}
 </style>
@@ -64,55 +52,46 @@ tr:nth-child(even){background:#141824}
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
 
 <div class="dashboard">
- <div class="card"><h2>Jakarta Barat</h2><div class="count jakbar" id="c_jb">0</div></div>
- <div class="card"><h2>Jakarta Pusat</h2><div class="count jakpus" id="c_jp">0</div></div>
- <div class="card"><h2>Jakarta Selatan</h2><div class="count jaksel" id="c_js">0</div></div>
- <div class="card"><h2>Jakarta Timur</h2><div class="count jaktim" id="c_jt">0</div></div>
- <div class="card"><h2>Jakarta Utara</h2><div class="count jakut" id="c_ju">0</div></div>
- <div class="card"><h2>Kepulauan Seribu</h2><div class="count seribu" id="c_ks">0</div></div>
- <div class="card"><h2>Total Kejadian</h2><div class="count total" id="c_total">0</div></div>
+  <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
+  <div class="card"><h2>Jakarta Pusat</h2><div class="count" id="jp">0</div></div>
+  <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
+  <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
+  <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
+  <div class="card"><h2>Kep. Seribu</h2><div class="count" id="ks">0</div></div>
+  <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
 </div>
 
 <table>
 <thead>
 <tr>
- <th>Hari / Tanggal</th>
- <th>Waktu</th>
- <th>Jenis</th>
- <th>Alamat TKP</th>
- <th>Kelurahan</th>
- <th>Kecamatan</th>
- <th>Kota</th>
- <th>Objek</th>
+  <th>Hari / Tanggal</th>
+  <th>Waktu</th>
+  <th>Jenis</th>
+  <th>Alamat</th>
+  <th>Kelurahan</th>
+  <th>Kecamatan</th>
+  <th>Kota</th>
+  <th>Objek</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
 
 <script>
-// =======================
-// LINK CSV PUBLIK (FINAL)
-// =======================
-const SHEET_URL =
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
 const tbody = document.getElementById("tbody");
 
-function loadData(){
-  Papa.parse(SHEET_URL, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: function(res){
-      render(res.data);
-    }
-  });
-}
+Papa.parse(CSV_URL,{
+  download:true,
+  skipEmptyLines:true,
+  complete:function(res){
+    render(res.data);
+  }
+});
 
 function render(rows){
-  tbody.innerHTML="";
-  let unik={};
-
   let count={
     "Jakarta Barat":0,
     "Jakarta Pusat":0,
@@ -122,20 +101,31 @@ function render(rows){
     "Kepulauan Seribu":0
   };
 
-  rows.forEach(r=>{
-    // lewati header dobel (karena publish entire doc)
-    if(r["Jenis Kejadian"] === "Jenis Kejadian") return;
+  let unik={};
 
-    const jenis = (r["Jenis Kejadian"] || "").toLowerCase();
+  rows.slice(1).forEach(r=>{
+    /*
+      INDEX KOLOM (SESUIAI CSV KAMU):
+      1 = Hari / Tanggal
+      2 = Waktu Terima Informasi
+      3 = Jenis Kejadian
+      4 = Lokasi TKP
+      5 = Kelurahan
+      6 = Kecamatan
+      7 = Kota
+      8 = Objek
+    */
+
+    const jenis = (r[3] || "").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
-    const hari = r["Hari / Tanggal"] || "";
-    const waktu = r["Waktu Terima Informasi"] || "";
-    const alamat = r["Lokasi TKP"] || "";
-    const kel = r["Kelurahan"] || "";
-    const kec = r["Kecamatan"] || "";
-    const kota = r["Kota"] || "";
-    const objek = r["Objek"] || "";
+    const hari = r[1] || "";
+    const waktu = r[2] || "";
+    const alamat = r[4] || "";
+    const kel = r[5] || "";
+    const kec = r[6] || "";
+    const kota = r[7] || "";
+    const objek = r[8] || "";
 
     const key = hari + alamat + kota;
     if(unik[key]) return;
@@ -143,8 +133,8 @@ function render(rows){
 
     if(count[kota] !== undefined) count[kota]++;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
       <td>${hari}</td>
       <td>${waktu}</td>
       <td>KEBAKARAN</td>
@@ -157,17 +147,15 @@ function render(rows){
     tbody.appendChild(tr);
   });
 
-  document.getElementById("c_jb").innerText = count["Jakarta Barat"];
-  document.getElementById("c_jp").innerText = count["Jakarta Pusat"];
-  document.getElementById("c_js").innerText = count["Jakarta Selatan"];
-  document.getElementById("c_jt").innerText = count["Jakarta Timur"];
-  document.getElementById("c_ju").innerText = count["Jakarta Utara"];
-  document.getElementById("c_ks").innerText = count["Kepulauan Seribu"];
-  document.getElementById("c_total").innerText =
+  document.getElementById("jb").innerText=count["Jakarta Barat"];
+  document.getElementById("jp").innerText=count["Jakarta Pusat"];
+  document.getElementById("js").innerText=count["Jakarta Selatan"];
+  document.getElementById("jt").innerText=count["Jakarta Timur"];
+  document.getElementById("ju").innerText=count["Jakarta Utara"];
+  document.getElementById("ks").innerText=count["Kepulauan Seribu"];
+  document.getElementById("total").innerText=
     Object.values(count).reduce((a,b)=>a+b,0);
 }
-
-window.onload = loadData;
 </script>
 
 </body>
