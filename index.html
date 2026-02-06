@@ -3,15 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard Bencana DKI</title>
+<title>Dashboard Kebakaran & Tinggi Muka Air DKI</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
+:root{
+  --bg:#0f1115;
+  --panel:#161a24;
+  --accent:#ff6b6b;
+  --blue:#6bcfff;
+}
+*{box-sizing:border-box}
 body{
   margin:0;
   font-family:Segoe UI,Arial;
-  background:#0f1115;
+  background:var(--bg);
   color:#eaeaea;
 }
 header{
@@ -19,32 +26,120 @@ header{
   background:#141824;
   box-shadow:0 6px 20px rgba(0,0,0,.4);
 }
-h1{margin:0;color:#ff6b6b}
-p{margin:6px 0 0;color:#aaa}
+header h1{margin:0;color:var(--accent)}
+header p{margin:6px 0 0;color:#aaa}
 
 .section{
   margin:18px;
-  background:#161a24;
-  border-radius:16px;
+  background:var(--panel);
+  border-radius:18px;
   padding:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.45);
+  box-shadow:0 12px 35px rgba(0,0,0,.5);
 }
-h2{color:#6bcfff;margin:0 0 10px}
+.section h2{
+  margin:0 0 12px;
+  color:var(--blue);
+}
 
-.alert{
+/* ================= DASHBOARD ================= */
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:16px;
+}
+
+/* CARD */
+.card{
+  position:relative;
+  border-radius:18px;
+  padding:16px;
+  text-align:center;
+  color:#fff;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+  transform:translateY(20px);
+  opacity:0;
+  animation:fadeUp .7s ease forwards;
+}
+.card:hover{
+  transform:translateY(-6px) scale(1.03);
+  box-shadow:0 18px 50px rgba(255,107,107,.6);
+}
+
+.card h3{
+  margin:0;
+  font-size:14px;
+  opacity:.9;
+}
+.card .count{
+  font-size:42px;
+  font-weight:900;
+  margin-top:6px;
+}
+
+/* WARNA PER KOTA */
+.jb{background:linear-gradient(135deg,#ff512f,#dd2476)}
+.jp{background:linear-gradient(135deg,#ffb347,#ffcc33);color:#222}
+.js{background:linear-gradient(135deg,#00c6ff,#0072ff)}
+.jt{background:linear-gradient(135deg,#7f00ff,#e100ff)}
+.ju{background:linear-gradient(135deg,#43cea2,#185a9d)}
+.ks{background:linear-gradient(135deg,#f7971e,#ffd200);color:#222}
+.total{background:linear-gradient(135deg,#ff416c,#ff4b2b)}
+
+/* API ANIMASI */
+.fire{
+  position:absolute;
+  bottom:-18px;
+  left:50%;
+  width:70px;
+  height:70px;
+  transform:translateX(-50%);
+  background:radial-gradient(circle at 50% 60%,#fff176,#ff9800,#f44336);
+  border-radius:50%;
+  filter:blur(8px);
+  opacity:.75;
+  animation:flame 1.3s infinite alternate;
+}
+
+/* STATUS */
+.status{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.badge{
+  flex:1;
+  min-width:120px;
   padding:14px;
   border-radius:14px;
-  margin-bottom:10px;
+  text-align:center;
+  font-weight:800;
 }
-.red{background:#b00020}
-.orange{background:#f9a825;color:#111}
-.green{background:#2e7d32}
+.siaga1{background:#b00020}
+.siaga2{background:#f9a825;color:#111}
+.normal{background:#2e7d32}
 
+/* IFRAME */
 iframe{
   width:100%;
-  height:480px;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
+}
+
+/* ANIM */
+@keyframes flame{
+  0%{transform:translateX(-50%) scale(1)}
+  100%{transform:translateX(-50%) scale(1.35)}
+}
+@keyframes fadeUp{
+  to{transform:none;opacity:1}
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .section{margin:12px}
+  header h1{font-size:20px}
+  .count{font-size:36px}
 }
 </style>
 </head>
@@ -52,73 +147,91 @@ iframe{
 <body>
 
 <header>
-  <h1>🌊 Dashboard Kebencanaan DKI</h1>
-  <p>BMKG CAP • TMA • Auto-refresh</p>
+  <h1>🔥 Dashboard Kebakaran & 🌊 Tinggi Muka Air DKI</h1>
+  <p>Gratis • Online • Auto-refresh • Mobile Friendly</p>
 </header>
 
-<!-- ALERT BMKG -->
+<!-- DASHBOARD KEBAKARAN -->
 <div class="section">
-  <h2>🚨 Peringatan Dini BMKG (CAP)</h2>
-  <div id="bmkgAlert">Memuat data...</div>
+  <h2>🔥 Rekap Kebakaran per Wilayah</h2>
+  <div class="dashboard">
+    <div class="card jb"><div class="fire"></div><h3>Jakarta Barat</h3><div class="count" id="jb">0</div></div>
+    <div class="card jp"><div class="fire"></div><h3>Jakarta Pusat</h3><div class="count" id="jp">0</div></div>
+    <div class="card js"><div class="fire"></div><h3>Jakarta Selatan</h3><div class="count" id="js">0</div></div>
+    <div class="card jt"><div class="fire"></div><h3>Jakarta Timur</h3><div class="count" id="jt">0</div></div>
+    <div class="card ju"><div class="fire"></div><h3>Jakarta Utara</h3><div class="count" id="ju">0</div></div>
+    <div class="card ks"><div class="fire"></div><h3>Kep. Seribu</h3><div class="count" id="ks">0</div></div>
+    <div class="card total"><div class="fire"></div><h3>TOTAL</h3><div class="count" id="total">0</div></div>
+  </div>
+</div>
+
+<!-- STATUS SIAGA -->
+<div class="section">
+  <h2>🔴 Status Siaga Banjir</h2>
+  <div class="status">
+    <div class="badge siaga1">SIAGA 1<br>BAHAYA</div>
+    <div class="badge siaga2">SIAGA 2<br>WASPADA</div>
+    <div class="badge normal">NORMAL</div>
+  </div>
 </div>
 
 <!-- TMA -->
 <div class="section">
-  <h2>🌊 Tinggi Muka Air DKI</h2>
-  <iframe src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir"></iframe>
+  <h2>🌊 Tinggi Muka Air (Realtime)</h2>
+  <iframe src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir" height="560"></iframe>
+</div>
+
+<div class="section">
+  <h2>📊 Grafik Tinggi Muka Air</h2>
+  <iframe src="https://poskobanjirdsda.jakarta.go.id/Pages/grafikDataTinggiMukaAir.aspx" height="420"></iframe>
 </div>
 
 <script>
-// ============================
-// BMKG CAP ALERT (XML)
-// ============================
-const BMKG_CAP =
-  "https://www.bmkg.go.id/alerts/nowcast/id";
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
-const CORS_PROXY = "https://cors.isomorphic-git.org/";
+Papa.parse(CSV_URL,{
+  download:true,
+  skipEmptyLines:true,
+  complete:(res)=>hitung(res.data.slice(1))
+});
 
-fetch(CORS_PROXY + BMKG_CAP)
-  .then(r=>r.text())
-  .then(xmlText=>{
-    const xml = new DOMParser().parseFromString(xmlText,"text/xml");
-    const alerts = xml.getElementsByTagName("alert");
+function anim(el,val){
+  let n=0;
+  const step=Math.max(1,Math.ceil(val/40));
+  const t=setInterval(()=>{
+    n+=step;
+    if(n>=val){n=val;clearInterval(t);}
+    el.innerText=n;
+  },22);
+}
 
-    if(alerts.length===0){
-      bmkgAlert.innerHTML="<div class='alert green'>Tidak ada peringatan aktif</div>";
-      return;
-    }
+function hitung(rows){
+  const c={
+    "Jakarta Barat":0,
+    "Jakarta Pusat":0,
+    "Jakarta Selatan":0,
+    "Jakarta Timur":0,
+    "Jakarta Utara":0,
+    "Kepulauan Seribu":0
+  };
+  let total=0;
 
-    let html="";
-    for(let i=0;i<alerts.length;i++){
-      const info = alerts[i].getElementsByTagName("info")[0];
-      if(!info) continue;
-
-      const event = info.getElementsByTagName("event")[0]?.textContent || "";
-      const area = info.getElementsByTagName("areaDesc")[0]?.textContent || "";
-      const severity = info.getElementsByTagName("severity")[0]?.textContent || "";
-
-      let cls="green";
-      if(severity==="Severe") cls="red";
-      else if(severity==="Moderate") cls="orange";
-
-      html+=`
-        <div class="alert ${cls}">
-          <strong>${event}</strong><br>
-          <small>${area}</small><br>
-          <small>Severity: ${severity}</small>
-        </div>
-      `;
-    }
-
-    bmkgAlert.innerHTML=html;
-  })
-  .catch(()=>{
-    bmkgAlert.innerHTML="<div class='alert orange'>Gagal memuat data BMKG</div>";
+  rows.forEach(r=>{
+    if(!(r[3]||"").toLowerCase().includes("kebakaran")) return;
+    if(c[r[7]]!=null){c[r[7]]++;total++;}
   });
 
-// ============================
-// AUTO REFRESH (5 MENIT)
-// ============================
+  anim(jb,c["Jakarta Barat"]);
+  anim(jp,c["Jakarta Pusat"]);
+  anim(js,c["Jakarta Selatan"]);
+  anim(jt,c["Jakarta Timur"]);
+  anim(ju,c["Jakarta Utara"]);
+  anim(ks,c["Kepulauan Seribu"]);
+  anim(document.getElementById("total"),total);
+}
+
+// AUTO REFRESH 5 MENIT
 setTimeout(()=>location.reload(),300000);
 </script>
 
