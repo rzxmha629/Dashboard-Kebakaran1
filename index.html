@@ -3,58 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <title>Rekap Kebakaran per Wilayah</title>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-body{
-  font-family:Segoe UI,Arial;
-  background:#0f1115;
-  color:#eaeaea;
-  margin:20px;
-}
+body{font-family:Segoe UI,Arial;background:#0f1115;color:#eee;margin:20px}
 h1{color:#ff6b6b}
-
-.dashboard{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:14px;
-  margin-top:20px;
-}
-
-.card{
-  background:#161a24;
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.45);
-  text-align:center;
-}
-.card h2{
-  margin:0;
-  font-size:14px;
-  color:#aaa;
-}
-.card .count{
-  font-size:42px;
-  font-weight:800;
-  margin-top:6px;
-}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.card{background:#161a24;border-radius:14px;padding:16px;text-align:center}
+.count{font-size:42px;font-weight:800}
 </style>
 </head>
 
 <body>
 
 <h1>🔥 Rekap Kebakaran per Wilayah</h1>
-<p>Data otomatis dari seluruh sheet Google Spreadsheet</p>
 
-<div class="dashboard">
-  <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
-  <div class="card"><h2>Jakarta Pusat</h2><div class="count" id="jp">0</div></div>
-  <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
-  <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
-  <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
-  <div class="card"><h2>Kepulauan Seribu</h2><div class="count" id="ks">0</div></div>
-  <div class="card"><h2>TOTAL</h2><div class="count" id="total">0</div></div>
+<div class="grid">
+  <div class="card"><div>Jakarta Barat</div><div class="count" id="Jakarta Barat">0</div></div>
+  <div class="card"><div>Jakarta Pusat</div><div class="count" id="Jakarta Pusat">0</div></div>
+  <div class="card"><div>Jakarta Selatan</div><div class="count" id="Jakarta Selatan">0</div></div>
+  <div class="card"><div>Jakarta Timur</div><div class="count" id="Jakarta Timur">0</div></div>
+  <div class="card"><div>Jakarta Utara</div><div class="count" id="Jakarta Utara">0</div></div>
+  <div class="card"><div>Kepulauan Seribu</div><div class="count" id="Kepulauan Seribu">0</div></div>
+  <div class="card"><div>TOTAL</div><div class="count" id="TOTAL">0</div></div>
 </div>
 
 <script>
@@ -64,41 +35,50 @@ const CSV_URL =
 Papa.parse(CSV_URL,{
   download:true,
   skipEmptyLines:true,
-  complete:(res)=>{
-    hitung(res.data.slice(1));
-  }
+  complete:(res)=>proses(res.data)
 });
 
-function hitung(rows){
+function normal(v){return (v||"").toString().trim().toLowerCase()}
+
+function proses(rows){
+  let headerMap={}
   const count={
-    "Jakarta Barat":0,
-    "Jakarta Pusat":0,
-    "Jakarta Selatan":0,
-    "Jakarta Timur":0,
-    "Jakarta Utara":0,
-    "Kepulauan Seribu":0
+    "jakarta barat":0,
+    "jakarta pusat":0,
+    "jakarta selatan":0,
+    "jakarta timur":0,
+    "jakarta utara":0,
+    "kepulauan seribu":0
   };
 
-  let total=0;
+  rows.forEach(row=>{
+    // detect header ulang
+    row.forEach((c,i)=>{
+      const v=normal(c)
+      if(v.includes("jenis")) headerMap.jenis=i
+      if(v.includes("kota")||v.includes("wilayah")) headerMap.kota=i
+    });
 
-  rows.forEach(r=>{
-    const jenis=(r[3]||"").toLowerCase();
+    if(headerMap.jenis==null || headerMap.kota==null) return;
+
+    const jenis=normal(row[headerMap.jenis]);
     if(!jenis.includes("kebakaran")) return;
 
-    const kota=r[7] || "";
+    const kota=normal(row[headerMap.kota]);
     if(count[kota]!==undefined){
       count[kota]++;
-      total++;
     }
   });
 
-  document.getElementById("jb").innerText=count["Jakarta Barat"];
-  document.getElementById("jp").innerText=count["Jakarta Pusat"];
-  document.getElementById("js").innerText=count["Jakarta Selatan"];
-  document.getElementById("jt").innerText=count["Jakarta Timur"];
-  document.getElementById("ju").innerText=count["Jakarta Utara"];
-  document.getElementById("ks").innerText=count["Kepulauan Seribu"];
-  document.getElementById("total").innerText=total;
+  let total=0;
+  Object.keys(count).forEach(k=>{
+    document.getElementById(
+      k.replace(/\b\w/g,l=>l.toUpperCase())
+    ).innerText=count[k];
+    total+=count[k];
+  });
+
+  document.getElementById("TOTAL").innerText=total;
 }
 </script>
 
