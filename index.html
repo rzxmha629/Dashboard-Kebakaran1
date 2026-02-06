@@ -75,7 +75,7 @@ tr:nth-child(even){background:#141824}
   <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
   <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
   <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
-  <div class="card"><h2>Kep. Seribu</h2><div class="count" id="ks">0</div></div>
+  <div class="card"><h2>Kepulauan Seribu</h2><div class="count" id="ks">0</div></div>
   <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
 </div>
 
@@ -112,8 +112,9 @@ function getMonth(v){
 
 function buildBulan(){
   const set=new Set();
+
   rows.forEach(r=>{
-    const m=getMonth(r[1]);
+    const m=getMonth(r[1]); // kolom tanggal
     if(m!==null) set.add(m);
   });
 
@@ -151,11 +152,12 @@ function render(){
     const jenis=(r[3]||"").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
-    const kota=r[7];
+    const kota=r[7] || "";
+
     if(count[kota]!==undefined) count[kota]++;
 
     const tr=document.createElement("tr");
-    r.forEach(c=>tr.innerHTML+=`<td>${c}</td>`);
+    r.forEach(c=>tr.innerHTML+=`<td>${c || ""}</td>`);
     tbody.appendChild(tr);
 
     total++;
