@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <title>Dashboard Rekap Kebakaran</title>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
 <style>
 body{
   font-family:Segoe UI,Arial;
@@ -15,20 +13,14 @@ body{
 }
 h1{color:#ff6b6b}
 
-.dashboard{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:14px;
-  margin-bottom:20px;
-}
-.card{
+.filter{margin-bottom:12px}
+select{
+  padding:6px 10px;
+  border-radius:8px;
   background:#161a24;
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.45);
+  color:#fff;
+  border:1px solid #2a2e3b;
 }
-.card h2{margin:0;font-size:14px;color:#aaa}
-.card .count{font-size:40px;font-weight:800}
 
 table{
   width:100%;
@@ -44,17 +36,6 @@ th{
   color:#ffb3b3;
 }
 tr:nth-child(even){background:#141824}
-
-.filter{
-  margin-bottom:14px;
-}
-select{
-  background:#161a24;
-  color:#fff;
-  border:1px solid #2a2e3b;
-  padding:6px 10px;
-  border-radius:8px;
-}
 </style>
 </head>
 
@@ -81,20 +62,10 @@ select{
   </select>
 </div>
 
-<div class="dashboard">
-  <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
-  <div class="card"><h2>Jakarta Pusat</h2><div class="count" id="jp">0</div></div>
-  <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
-  <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
-  <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
-  <div class="card"><h2>Kep. Seribu</h2><div class="count" id="ks">0</div></div>
-  <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
-</div>
-
 <table>
 <thead>
 <tr>
-  <th>Hari / Tanggal</th>
+  <th>Tanggal</th>
   <th>Waktu</th>
   <th>Jenis</th>
   <th>Alamat</th>
@@ -108,105 +79,95 @@ select{
 </table>
 
 <script>
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
+/* =======================
+   WAJIB DIISI
+======================= */
+const API_KEY = "AIzaSyAvQLFQUfTAovJ-J3_WYvh7KuzQqnkdx4M";
+const SPREADSHEET_ID = "1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
+
+/* ======================= */
 
 const tbody = document.getElementById("tbody");
 const filterBulan = document.getElementById("bulan");
-let dataCSV = [];
 
-/* 🔥 DEFAULT KE BULAN BERJALAN */
-const bulanSekarang = String(new Date().getMonth() + 1).padStart(2,"0");
-filterBulan.value = bulanSekarang;
-
-Papa.parse(CSV_URL,{
-  download:true,
-  skipEmptyLines:true,
-  complete:function(res){
-    dataCSV = res.data;
-    render();
-  }
-});
-
+/* default bulan berjalan */
+filterBulan.value = String(new Date().getMonth()+1).padStart(2,"0");
 filterBulan.addEventListener("change", render);
 
-/* ✅ FUNGSI AMAN UNTUK SEMUA FORMAT GOOGLE SHEET */
-function getBulan(tanggal){
-  if(!tanggal) return "";
-  tanggal = tanggal.toString().trim();
+/* daftar sheet (TAB) */
+const SHEETS = [
+  "Januari","Februari","Maret","April","Mei","Juni",
+  "Juli","Agustus","September","Oktober","November","Desember"
+];
 
-  // DD/MM/YYYY atau D/M/YYYY
-  if(tanggal.includes("/")){
-    return tanggal.split("/")[1].padStart(2,"0");
+let semuaData = [];
+
+/* AMBIL SEMUA SHEET */
+Promise.all(
+  SHEETS.map(nama =>
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${nama}?key=${API_KEY}`)
+      .then(r => r.json())
+      .then(d => d.values ? d.values.slice(1) : [])
+      .catch(()=>[])
+  )
+).then(data=>{
+  semuaData = data.flat();
+  render();
+});
+
+/* DETEKSI BULAN ANGKA & HURUF */
+function getBulan(val){
+  if(!val) return "";
+  val = val.toString().toLowerCase();
+
+  const map={
+    januari:"01", jan:"01",
+    februari:"02", feb:"02",
+    maret:"03", mar:"03",
+    april:"04", apr:"04",
+    mei:"05",
+    juni:"06", jun:"06",
+    juli:"07", jul:"07",
+    agustus:"08", agu:"08", aug:"08",
+    september:"09", sep:"09",
+    oktober:"10", okt:"10",
+    november:"11", nov:"11",
+    desember:"12", des:"12"
+  };
+
+  for(const k in map){
+    if(val.includes(k)) return map[k];
   }
 
-  // YYYY-MM-DD
-  if(tanggal.includes("-")){
-    return tanggal.split("-")[1];
-  }
+  if(val.includes("/")) return val.split("/")[1]?.padStart(2,"0") || "";
+  if(val.includes("-")) return val.split("-")[1] || "";
 
   return "";
 }
 
 function render(){
   tbody.innerHTML="";
-
-  let count={
-    "Jakarta Barat":0,
-    "Jakarta Pusat":0,
-    "Jakarta Selatan":0,
-    "Jakarta Timur":0,
-    "Jakarta Utara":0,
-    "Kepulauan Seribu":0
-  };
-
-  let unik={};
   const bulanDipilih = filterBulan.value;
 
-  dataCSV.slice(1).forEach(r=>{
-    const jenis = (r[3] || "").toLowerCase();
-    if(!jenis.includes("kebakaran")) return;
+  semuaData.forEach(r=>{
+    const tanggal = r[0] || "";
+    const bulan = getBulan(tanggal);
 
-    const hari = r[1] || "";
-    const bulan = getBulan(hari);
-
-    if(bulanDipilih !== "all" && bulan !== bulanDipilih) return;
-
-    const waktu = r[2] || "";
-    const alamat = r[4] || "";
-    const kel = r[5] || "";
-    const kec = r[6] || "";
-    const kota = r[7] || "";
-    const objek = r[8] || "";
-
-    const key = hari + alamat + kota;
-    if(unik[key]) return;
-    unik[key]=1;
-
-    if(count[kota] !== undefined) count[kota]++;
+    if(bulanDipilih!=="all" && bulan!==bulanDipilih) return;
 
     const tr=document.createElement("tr");
     tr.innerHTML=`
-      <td>${hari}</td>
-      <td>${waktu}</td>
-      <td>KEBAKARAN</td>
-      <td>${alamat}</td>
-      <td>${kel}</td>
-      <td>${kec}</td>
-      <td>${kota}</td>
-      <td>${objek}</td>
+      <td>${tanggal}</td>
+      <td>${r[1]||""}</td>
+      <td>${r[2]||""}</td>
+      <td>${r[3]||""}</td>
+      <td>${r[4]||""}</td>
+      <td>${r[5]||""}</td>
+      <td>${r[6]||""}</td>
+      <td>${r[7]||""}</td>
     `;
     tbody.appendChild(tr);
   });
-
-  document.getElementById("jb").innerText=count["Jakarta Barat"];
-  document.getElementById("jp").innerText=count["Jakarta Pusat"];
-  document.getElementById("js").innerText=count["Jakarta Selatan"];
-  document.getElementById("jt").innerText=count["Jakarta Timur"];
-  document.getElementById("ju").innerText=count["Jakarta Utara"];
-  document.getElementById("ks").innerText=count["Kepulauan Seribu"];
-  document.getElementById("total").innerText=
-    Object.values(count).reduce((a,b)=>a+b,0);
 }
 </script>
 
