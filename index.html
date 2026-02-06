@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Dashboard Rekap Kebakaran</title>
-
 <script src="https://www.gstatic.com/charts/loader.js"></script>
 
 <style>
@@ -14,7 +13,6 @@ body{
   margin:20px;
 }
 h1{color:#ff6b6b}
-
 select{
   padding:8px 12px;
   border-radius:8px;
@@ -23,7 +21,6 @@ select{
   border:1px solid #2a2e3b;
   margin-bottom:14px;
 }
-
 .dashboard{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
@@ -34,11 +31,9 @@ select{
   background:#161a24;
   border-radius:14px;
   padding:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.45);
 }
 .card h2{margin:0;font-size:14px;color:#aaa}
 .card .count{font-size:40px;font-weight:800}
-
 table{
   width:100%;
   border-collapse:collapse;
@@ -60,7 +55,7 @@ tr:nth-child(even){background:#141824}
 
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
 
-<select id="bulanSelect"></select>
+<select id="bulan"></select>
 
 <div class="dashboard">
   <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
@@ -75,7 +70,7 @@ tr:nth-child(even){background:#141824}
 <table>
 <thead>
 <tr>
-  <th>Hari / Tanggal</th>
+  <th>Tanggal</th>
   <th>Waktu</th>
   <th>Jenis</th>
   <th>Alamat</th>
@@ -89,37 +84,61 @@ tr:nth-child(even){background:#141824}
 </table>
 
 <script>
-google.charts.load('current', {'packages':['corechart']});
+google.charts.load('current', {packages:['corechart']});
 google.charts.setOnLoadCallback(init);
 
 const SHEET_ID = "1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
-const bulanList = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const bulanNama = [
+  "Januari","Februari","Maret","April","Mei","Juni",
+  "Juli","Agustus","September","Oktober","November","Desember"
+];
+
+const select = document.getElementById("bulan");
+let sheetValid = [];
 
 function init(){
-  const select=document.getElementById("bulanSelect");
-  bulanList.forEach(b=>{
-    const o=document.createElement("option");
-    o.value=b;
-    o.text=b;
-    select.appendChild(o);
-  });
-
-  const now=new Date();
-  select.value=bulanList[now.getMonth()];
-  loadSheet(select.value);
-
-  select.onchange=()=>loadSheet(select.value);
+  deteksiSheet(0);
 }
 
-function loadSheet(sheetName){
-  const query=new google.visualization.Query(
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${sheetName}`
-  );
-  query.send(res=>{
-    if(res.isError()){
-      console.warn("Sheet tidak ada:",sheetName);
+function deteksiSheet(i){
+  if(i >= bulanNama.length){
+    if(sheetValid.length === 0){
+      alert("Tidak ada sheet bulan yang terbaca");
       return;
     }
+    sheetValid.forEach(b=>{
+      const o=document.createElement("option");
+      o.value=b; o.text=b;
+      select.appendChild(o);
+    });
+
+    const bulanNow = bulanNama[new Date().getMonth()];
+    select.value = sheetValid.includes(bulanNow) ? bulanNow : sheetValid[0];
+    loadSheet(select.value);
+
+    select.onchange = ()=>loadSheet(select.value);
+    return;
+  }
+
+  const nama = bulanNama[i];
+  const q = new google.visualization.Query(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${nama}`
+  );
+
+  q.send(res=>{
+    if(!res.isError() && res.getDataTable().getNumberOfRows() > 0){
+      sheetValid.push(nama);
+    }
+    deteksiSheet(i+1);
+  });
+}
+
+function loadSheet(nama){
+  const q=new google.visualization.Query(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${nama}`
+  );
+  q.send(res=>{
+    if(res.isError()) return;
     render(res.getDataTable());
   });
 }
@@ -136,37 +155,31 @@ function render(dt){
     "Jakarta Utara":0,
     "Kepulauan Seribu":0
   };
-
   let unik={};
 
   for(let i=0;i<dt.getNumberOfRows();i++){
     const jenis=(dt.getValue(i,2)||"").toLowerCase();
     if(!jenis.includes("kebakaran")) continue;
 
-    const hari=dt.getValue(i,0)||"";
-    const waktu=dt.getValue(i,1)||"";
+    const tgl=dt.getValue(i,0)||"";
     const alamat=dt.getValue(i,3)||"";
-    const kel=dt.getValue(i,4)||"";
-    const kec=dt.getValue(i,5)||"";
     const kota=dt.getValue(i,6)||"";
-    const objek=dt.getValue(i,7)||"";
-
-    const key=hari+alamat+kota;
+    const key=tgl+alamat+kota;
     if(unik[key]) continue;
     unik[key]=1;
 
-    if(count[kota]!==undefined) count[kota]++;
+    if(count[kota]!=null) count[kota]++;
 
     tbody.insertAdjacentHTML("beforeend",`
       <tr>
-        <td>${hari}</td>
-        <td>${waktu}</td>
+        <td>${tgl}</td>
+        <td>${dt.getValue(i,1)||""}</td>
         <td>KEBAKARAN</td>
         <td>${alamat}</td>
-        <td>${kel}</td>
-        <td>${kec}</td>
+        <td>${dt.getValue(i,4)||""}</td>
+        <td>${dt.getValue(i,5)||""}</td>
         <td>${kota}</td>
-        <td>${objek}</td>
+        <td>${dt.getValue(i,7)||""}</td>
       </tr>
     `);
   }
