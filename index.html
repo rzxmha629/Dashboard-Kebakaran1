@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Dashboard Rekap Kebakaran</title>
 
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+
 <style>
 body{
   font-family:Segoe UI,Arial;
@@ -13,14 +15,29 @@ body{
 }
 h1{color:#ff6b6b}
 
-.filter{margin-bottom:12px}
 select{
-  padding:6px 10px;
+  padding:8px 12px;
   border-radius:8px;
   background:#161a24;
   color:#fff;
   border:1px solid #2a2e3b;
+  margin-bottom:14px;
 }
+
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:14px;
+  margin-bottom:20px;
+}
+.card{
+  background:#161a24;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.45);
+}
+.card h2{margin:0;font-size:14px;color:#aaa}
+.card .count{font-size:40px;font-weight:800}
 
 table{
   width:100%;
@@ -43,29 +60,22 @@ tr:nth-child(even){background:#141824}
 
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
 
-<div class="filter">
-  Filter Bulan :
-  <select id="bulan">
-    <option value="all">Semua Bulan</option>
-    <option value="01">Januari</option>
-    <option value="02">Februari</option>
-    <option value="03">Maret</option>
-    <option value="04">April</option>
-    <option value="05">Mei</option>
-    <option value="06">Juni</option>
-    <option value="07">Juli</option>
-    <option value="08">Agustus</option>
-    <option value="09">September</option>
-    <option value="10">Oktober</option>
-    <option value="11">November</option>
-    <option value="12">Desember</option>
-  </select>
+<select id="bulanSelect"></select>
+
+<div class="dashboard">
+  <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
+  <div class="card"><h2>Jakarta Pusat</h2><div class="count" id="jp">0</div></div>
+  <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
+  <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
+  <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
+  <div class="card"><h2>Kep. Seribu</h2><div class="count" id="ks">0</div></div>
+  <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
 </div>
 
 <table>
 <thead>
 <tr>
-  <th>Tanggal</th>
+  <th>Hari / Tanggal</th>
   <th>Waktu</th>
   <th>Jenis</th>
   <th>Alamat</th>
@@ -79,95 +89,96 @@ tr:nth-child(even){background:#141824}
 </table>
 
 <script>
-/* =======================
-   WAJIB DIISI
-======================= */
-const API_KEY = "AIzaSyAvQLFQUfTAovJ-J3_WYvh7KuzQqnkdx4M";
-const SPREADSHEET_ID = "1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
+google.charts.load('current', {'packages':['corechart']});
+google.charts.setOnLoadCallback(init);
 
-/* ======================= */
+const SHEET_ID = "1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
+const bulanList = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-const tbody = document.getElementById("tbody");
-const filterBulan = document.getElementById("bulan");
+function init(){
+  const select=document.getElementById("bulanSelect");
+  bulanList.forEach(b=>{
+    const o=document.createElement("option");
+    o.value=b;
+    o.text=b;
+    select.appendChild(o);
+  });
 
-/* default bulan berjalan */
-filterBulan.value = String(new Date().getMonth()+1).padStart(2,"0");
-filterBulan.addEventListener("change", render);
+  const now=new Date();
+  select.value=bulanList[now.getMonth()];
+  loadSheet(select.value);
 
-/* daftar sheet (TAB) */
-const SHEETS = [
-  "Januari","Februari","Maret","April","Mei","Juni",
-  "Juli","Agustus","September","Oktober","November","Desember"
-];
-
-let semuaData = [];
-
-/* AMBIL SEMUA SHEET */
-Promise.all(
-  SHEETS.map(nama =>
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${nama}?key=${API_KEY}`)
-      .then(r => r.json())
-      .then(d => d.values ? d.values.slice(1) : [])
-      .catch(()=>[])
-  )
-).then(data=>{
-  semuaData = data.flat();
-  render();
-});
-
-/* DETEKSI BULAN ANGKA & HURUF */
-function getBulan(val){
-  if(!val) return "";
-  val = val.toString().toLowerCase();
-
-  const map={
-    januari:"01", jan:"01",
-    februari:"02", feb:"02",
-    maret:"03", mar:"03",
-    april:"04", apr:"04",
-    mei:"05",
-    juni:"06", jun:"06",
-    juli:"07", jul:"07",
-    agustus:"08", agu:"08", aug:"08",
-    september:"09", sep:"09",
-    oktober:"10", okt:"10",
-    november:"11", nov:"11",
-    desember:"12", des:"12"
-  };
-
-  for(const k in map){
-    if(val.includes(k)) return map[k];
-  }
-
-  if(val.includes("/")) return val.split("/")[1]?.padStart(2,"0") || "";
-  if(val.includes("-")) return val.split("-")[1] || "";
-
-  return "";
+  select.onchange=()=>loadSheet(select.value);
 }
 
-function render(){
-  tbody.innerHTML="";
-  const bulanDipilih = filterBulan.value;
-
-  semuaData.forEach(r=>{
-    const tanggal = r[0] || "";
-    const bulan = getBulan(tanggal);
-
-    if(bulanDipilih!=="all" && bulan!==bulanDipilih) return;
-
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${tanggal}</td>
-      <td>${r[1]||""}</td>
-      <td>${r[2]||""}</td>
-      <td>${r[3]||""}</td>
-      <td>${r[4]||""}</td>
-      <td>${r[5]||""}</td>
-      <td>${r[6]||""}</td>
-      <td>${r[7]||""}</td>
-    `;
-    tbody.appendChild(tr);
+function loadSheet(sheetName){
+  const query=new google.visualization.Query(
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${sheetName}`
+  );
+  query.send(res=>{
+    if(res.isError()){
+      console.warn("Sheet tidak ada:",sheetName);
+      return;
+    }
+    render(res.getDataTable());
   });
+}
+
+function render(dt){
+  const tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+
+  let count={
+    "Jakarta Barat":0,
+    "Jakarta Pusat":0,
+    "Jakarta Selatan":0,
+    "Jakarta Timur":0,
+    "Jakarta Utara":0,
+    "Kepulauan Seribu":0
+  };
+
+  let unik={};
+
+  for(let i=0;i<dt.getNumberOfRows();i++){
+    const jenis=(dt.getValue(i,2)||"").toLowerCase();
+    if(!jenis.includes("kebakaran")) continue;
+
+    const hari=dt.getValue(i,0)||"";
+    const waktu=dt.getValue(i,1)||"";
+    const alamat=dt.getValue(i,3)||"";
+    const kel=dt.getValue(i,4)||"";
+    const kec=dt.getValue(i,5)||"";
+    const kota=dt.getValue(i,6)||"";
+    const objek=dt.getValue(i,7)||"";
+
+    const key=hari+alamat+kota;
+    if(unik[key]) continue;
+    unik[key]=1;
+
+    if(count[kota]!==undefined) count[kota]++;
+
+    tbody.insertAdjacentHTML("beforeend",`
+      <tr>
+        <td>${hari}</td>
+        <td>${waktu}</td>
+        <td>KEBAKARAN</td>
+        <td>${alamat}</td>
+        <td>${kel}</td>
+        <td>${kec}</td>
+        <td>${kota}</td>
+        <td>${objek}</td>
+      </tr>
+    `);
+  }
+
+  document.getElementById("jb").innerText=count["Jakarta Barat"];
+  document.getElementById("jp").innerText=count["Jakarta Pusat"];
+  document.getElementById("js").innerText=count["Jakarta Selatan"];
+  document.getElementById("jt").innerText=count["Jakarta Timur"];
+  document.getElementById("ju").innerText=count["Jakarta Utara"];
+  document.getElementById("ks").innerText=count["Kepulauan Seribu"];
+  document.getElementById("total").innerText=
+    Object.values(count).reduce((a,b)=>a+b,0);
 }
 </script>
 
