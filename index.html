@@ -3,36 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard Tinggi Muka Air & Laporan Bencana</title>
+<title>Dashboard Kebakaran & Tinggi Muka Air DKI</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
+:root{
+  --bg:#0f1115;
+  --panel:#161a24;
+  --accent:#ff6b6b;
+  --blue:#6bcfff;
+}
+*{box-sizing:border-box}
 body{
-  font-family:Segoe UI,Arial;
-  background:#0f1115;
-  color:#eaeaea;
   margin:0;
+  font-family:Segoe UI,Arial;
+  background:var(--bg);
+  color:#eaeaea;
 }
 header{
   padding:16px;
   background:#141824;
   box-shadow:0 6px 20px rgba(0,0,0,.4);
 }
-h1{color:#6bcfff;margin:0}
-p{color:#aaa;margin:6px 0 0}
+header h1{margin:0;color:var(--accent)}
+header p{margin:6px 0 0;color:#aaa}
 
 .section{
-  margin:20px;
-  background:#161a24;
+  margin:18px;
+  background:var(--panel);
   border-radius:16px;
   padding:16px;
   box-shadow:0 10px 30px rgba(0,0,0,.45);
 }
-h2{
+.section h2{
   margin:0 0 10px;
-  color:#ffb3b3;
+  color:var(--blue);
 }
 
-/* INDICATOR */
+/* DASHBOARD */
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:14px;
+}
+.card{
+  background:linear-gradient(180deg,#1a1f2e,#141824);
+  border-radius:16px;
+  padding:16px;
+  text-align:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);
+  transform:translateY(12px);
+  opacity:0;
+  animation:fadeUp .6s ease forwards;
+}
+.card h3{margin:0;color:#aaa;font-size:14px}
+.card .count{font-size:40px;font-weight:900;margin-top:6px}
+@keyframes fadeUp{to{transform:none;opacity:1}}
+
+/* STATUS */
 .status{
   display:flex;
   gap:12px;
@@ -43,13 +72,14 @@ h2{
   min-width:120px;
   padding:14px;
   border-radius:14px;
-  font-weight:700;
   text-align:center;
+  font-weight:800;
 }
-.siaga1{background:#b00020;}
-.siaga2{background:#f9a825;color:#111;}
-.normal{background:#2e7d32;}
+.siaga1{background:#b00020}
+.siaga2{background:#f9a825;color:#111}
+.normal{background:#2e7d32}
 
+/* IFRAME */
 iframe{
   width:100%;
   border:none;
@@ -58,8 +88,8 @@ iframe{
 
 /* MOBILE */
 @media(max-width:768px){
-  h1{font-size:20px}
-  .section{margin:14px}
+  .section{margin:12px}
+  header h1{font-size:20px}
 }
 </style>
 </head>
@@ -67,27 +97,41 @@ iframe{
 <body>
 
 <header>
-  <h1>🌊 Dashboard Tinggi Muka Air DKI</h1>
-  <p>Realtime • Gratis • Mobile Friendly</p>
+  <h1>🔥 Dashboard Kebakaran & 🌊 Tinggi Muka Air DKI</h1>
+  <p>Gratis • Online • Auto-refresh • Mobile Friendly</p>
 </header>
 
-<!-- INDIKATOR SIAGA -->
+<!-- DASHBOARD KEBAKARAN -->
+<div class="section">
+  <h2>🔥 Rekap Kebakaran per Wilayah</h2>
+  <div class="dashboard">
+    <div class="card"><h3>Jakarta Barat</h3><div class="count" id="jb">0</div></div>
+    <div class="card"><h3>Jakarta Pusat</h3><div class="count" id="jp">0</div></div>
+    <div class="card"><h3>Jakarta Selatan</h3><div class="count" id="js">0</div></div>
+    <div class="card"><h3>Jakarta Timur</h3><div class="count" id="jt">0</div></div>
+    <div class="card"><h3>Jakarta Utara</h3><div class="count" id="ju">0</div></div>
+    <div class="card"><h3>Kep. Seribu</h3><div class="count" id="ks">0</div></div>
+    <div class="card"><h3>TOTAL</h3><div class="count" id="total">0</div></div>
+  </div>
+</div>
+
+<!-- STATUS SIAGA -->
 <div class="section">
   <h2>🔴 Status Siaga Banjir</h2>
   <div class="status">
-    <div class="badge siaga1">SIAGA 1<br>Bahaya</div>
-    <div class="badge siaga2">SIAGA 2<br>Waspada</div>
+    <div class="badge siaga1">SIAGA 1<br>BAHAYA</div>
+    <div class="badge siaga2">SIAGA 2<br>WASPADA</div>
     <div class="badge normal">NORMAL</div>
   </div>
-  <p style="margin-top:8px;color:#aaa">
-    Status mengikuti informasi resmi Dinas SDA & BPBD DKI
+  <p style="color:#aaa;margin-top:8px">
+    Indikator visual – rujukan informasi resmi Dinas SDA & BPBD DKI
   </p>
 </div>
 
-<!-- PETA TMA BESAR -->
+<!-- TMA BESAR -->
 <div class="section">
-  <h2>🗺️ Peta Tinggi Muka Air (Realtime)</h2>
-  <iframe 
+  <h2>🌊 Peta Tinggi Muka Air (Realtime)</h2>
+  <iframe
     src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir"
     height="560"
     loading="lazy">
@@ -97,38 +141,77 @@ iframe{
 <!-- GRAFIK TMA -->
 <div class="section">
   <h2>📊 Grafik Tinggi Muka Air</h2>
-  <iframe 
+  <iframe
     src="https://poskobanjirdsda.jakarta.go.id/Pages/grafikDataTinggiMukaAir.aspx"
     height="420"
     loading="lazy">
   </iframe>
 </div>
 
-<!-- LAPORAN GEMPA -->
+<!-- GEMPA TERKINI BMKG -->
 <div class="section">
-  <h2>🌋 Laporan Gempa Terkini (BMKG)</h2>
-  <iframe 
+  <h2>🌋 Gempa Bumi Terkini (BMKG)</h2>
+  <iframe
     src="https://www.bmkg.go.id/gempabumi/gempabumi-terkini.bmkg"
     height="420"
     loading="lazy">
   </iframe>
 </div>
 
-<!-- LAPORAN KEBAKARAN -->
-<div class="section">
-  <h2>🔥 Informasi Kebakaran DKI</h2>
-  <iframe 
-    src="https://jakarta.go.id/kanal/kebakaran"
-    height="420"
-    loading="lazy">
-  </iframe>
-</div>
-
 <script>
-// AUTO REFRESH SETIAP 5 MENIT
-setTimeout(()=>{
-  location.reload();
-},300000); // 5 menit
+// =====================
+// CSV KEBAKARAN
+// =====================
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
+
+Papa.parse(CSV_URL,{
+  download:true,
+  skipEmptyLines:true,
+  complete:(res)=>hitung(res.data.slice(1))
+});
+
+function anim(el,val){
+  let n=0;
+  const step=Math.max(1,Math.ceil(val/40));
+  const t=setInterval(()=>{
+    n+=step;
+    if(n>=val){n=val;clearInterval(t);}
+    el.innerText=n;
+  },25);
+}
+
+function hitung(rows){
+  const c={
+    "Jakarta Barat":0,
+    "Jakarta Pusat":0,
+    "Jakarta Selatan":0,
+    "Jakarta Timur":0,
+    "Jakarta Utara":0,
+    "Kepulauan Seribu":0
+  };
+  let total=0;
+
+  rows.forEach(r=>{
+    const jenis=(r[3]||"").toLowerCase();
+    if(!jenis.includes("kebakaran")) return;
+    const kota=r[7]||"";
+    if(c[kota]!=null){c[kota]++;total++;}
+  });
+
+  anim(jb,c["Jakarta Barat"]);
+  anim(jp,c["Jakarta Pusat"]);
+  anim(js,c["Jakarta Selatan"]);
+  anim(jt,c["Jakarta Timur"]);
+  anim(ju,c["Jakarta Utara"]);
+  anim(ks,c["Kepulauan Seribu"]);
+  anim(document.getElementById("total"),total);
+}
+
+// =====================
+// AUTO REFRESH (5 MENIT)
+// =====================
+setTimeout(()=>location.reload(),300000);
 </script>
 
 </body>
