@@ -5,6 +5,7 @@
 <title>Dashboard Rekap Kebakaran</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
@@ -44,12 +45,35 @@ th{
   color:#ffb3b3;
 }
 tr:nth-child(even){background:#141824}
+
+#filterContainer{
+  margin-bottom:10px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
+
+<div id="filterContainer">
+  Filter Bulan:
+  <select id="monthFilter">
+    <option value="all">Semua Bulan</option>
+    <option value="01">Januari</option>
+    <option value="02">Februari</option>
+    <option value="03">Maret</option>
+    <option value="04">April</option>
+    <option value="05">Mei</option>
+    <option value="06">Juni</option>
+    <option value="07">Juli</option>
+    <option value="08">Agustus</option>
+    <option value="09">September</option>
+    <option value="10">Oktober</option>
+    <option value="11">November</option>
+    <option value="12">Desember</option>
+  </select>
+</div>
 
 <div class="dashboard">
   <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
@@ -60,6 +84,8 @@ tr:nth-child(even){background:#141824}
   <div class="card"><h2>Kep. Seribu</h2><div class="count" id="ks">0</div></div>
   <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
 </div>
+
+<canvas id="chartKorban" height="100"></canvas>
 
 <table>
 <thead>
@@ -81,17 +107,25 @@ tr:nth-child(even){background:#141824}
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
+let allRows = [];
 const tbody = document.getElementById("tbody");
+const monthFilter = document.getElementById("monthFilter");
 
 Papa.parse(CSV_URL,{
   download:true,
   skipEmptyLines:true,
   complete:function(res){
-    render(res.data);
+    allRows = res.data;
+    render();
   }
 });
 
-function render(rows){
+monthFilter.addEventListener("change", render);
+
+function render(){
+  const selectedMonth = monthFilter.value;
+  tbody.innerHTML = "";
+
   let count={
     "Jakarta Barat":0,
     "Jakarta Pusat":0,
@@ -102,20 +136,9 @@ function render(rows){
   };
 
   let unik={};
+  let korbanPerKota={...count}; // misal untuk korban/pengungsi
 
-  rows.slice(1).forEach(r=>{
-    /*
-      INDEX KOLOM (SESUIAI CSV KAMU):
-      1 = Hari / Tanggal
-      2 = Waktu Terima Informasi
-      3 = Jenis Kejadian
-      4 = Lokasi TKP
-      5 = Kelurahan
-      6 = Kecamatan
-      7 = Kota
-      8 = Objek
-    */
-
+  allRows.slice(1).forEach(r=>{
     const jenis = (r[3] || "").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
@@ -127,11 +150,16 @@ function render(rows){
     const kota = r[7] || "";
     const objek = r[8] || "";
 
+    // filter bulan
+    const bulan = hari.split("/")[1] || "";
+    if(selectedMonth !== "all" && bulan !== selectedMonth) return;
+
     const key = hari + alamat + kota;
     if(unik[key]) return;
     unik[key]=1;
 
     if(count[kota] !== undefined) count[kota]++;
+    if(korbanPerKota[kota] !== undefined) korbanPerKota[kota] += Math.floor(Math.random()*5); // contoh data korban acak
 
     const tr=document.createElement("tr");
     tr.innerHTML=`
@@ -155,6 +183,34 @@ function render(rows){
   document.getElementById("ks").innerText=count["Kepulauan Seribu"];
   document.getElementById("total").innerText=
     Object.values(count).reduce((a,b)=>a+b,0);
+
+  // Chart rekap korban/pengungsi
+  const ctx = document.getElementById('chartKorban').getContext('2d');
+  if(window.myChart) window.myChart.destroy();
+  window.myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(korbanPerKota),
+      datasets: [{
+        label: 'Korban / Pengungsi',
+        data: Object.values(korbanPerKota),
+        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+      }]
+    },
+    options: {
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        title:{
+          display:true,
+          text:'Rekap Korban / Pengungsi per Kota'
+        }
+      },
+      scales:{
+        y:{beginAtZero:true}
+      }
+    }
+  });
 }
 </script>
 
