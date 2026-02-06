@@ -44,12 +44,42 @@ th{
   color:#ffb3b3;
 }
 tr:nth-child(even){background:#141824}
+
+.filter{
+  margin-bottom:14px;
+}
+select{
+  background:#161a24;
+  color:#fff;
+  border:1px solid #2a2e3b;
+  padding:6px 10px;
+  border-radius:8px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🔥 Dashboard Rekap Kebakaran</h1>
+
+<div class="filter">
+  Filter Bulan :
+  <select id="bulan">
+    <option value="all">Semua Bulan</option>
+    <option value="01">Januari</option>
+    <option value="02">Februari</option>
+    <option value="03">Maret</option>
+    <option value="04">April</option>
+    <option value="05">Mei</option>
+    <option value="06">Juni</option>
+    <option value="07">Juli</option>
+    <option value="08">Agustus</option>
+    <option value="09">September</option>
+    <option value="10">Oktober</option>
+    <option value="11">November</option>
+    <option value="12">Desember</option>
+  </select>
+</div>
 
 <div class="dashboard">
   <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
@@ -82,16 +112,45 @@ const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
 const tbody = document.getElementById("tbody");
+const filterBulan = document.getElementById("bulan");
+let dataCSV = [];
+
+/* 🔥 DEFAULT KE BULAN BERJALAN */
+const bulanSekarang = String(new Date().getMonth() + 1).padStart(2,"0");
+filterBulan.value = bulanSekarang;
 
 Papa.parse(CSV_URL,{
   download:true,
   skipEmptyLines:true,
   complete:function(res){
-    render(res.data);
+    dataCSV = res.data;
+    render();
   }
 });
 
-function render(rows){
+filterBulan.addEventListener("change", render);
+
+/* ✅ FUNGSI AMAN UNTUK SEMUA FORMAT GOOGLE SHEET */
+function getBulan(tanggal){
+  if(!tanggal) return "";
+  tanggal = tanggal.toString().trim();
+
+  // DD/MM/YYYY atau D/M/YYYY
+  if(tanggal.includes("/")){
+    return tanggal.split("/")[1].padStart(2,"0");
+  }
+
+  // YYYY-MM-DD
+  if(tanggal.includes("-")){
+    return tanggal.split("-")[1];
+  }
+
+  return "";
+}
+
+function render(){
+  tbody.innerHTML="";
+
   let count={
     "Jakarta Barat":0,
     "Jakarta Pusat":0,
@@ -102,24 +161,17 @@ function render(rows){
   };
 
   let unik={};
+  const bulanDipilih = filterBulan.value;
 
-  rows.slice(1).forEach(r=>{
-    /*
-      INDEX KOLOM (SESUIAI CSV KAMU):
-      1 = Hari / Tanggal
-      2 = Waktu Terima Informasi
-      3 = Jenis Kejadian
-      4 = Lokasi TKP
-      5 = Kelurahan
-      6 = Kecamatan
-      7 = Kota
-      8 = Objek
-    */
-
+  dataCSV.slice(1).forEach(r=>{
     const jenis = (r[3] || "").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
     const hari = r[1] || "";
+    const bulan = getBulan(hari);
+
+    if(bulanDipilih !== "all" && bulan !== bulanDipilih) return;
+
     const waktu = r[2] || "";
     const alamat = r[4] || "";
     const kel = r[5] || "";
@@ -160,4 +212,3 @@ function render(rows){
 
 </body>
 </html>
-
