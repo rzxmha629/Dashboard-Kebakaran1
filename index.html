@@ -2,9 +2,17 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Rekap Kebakaran per Wilayah</title>
+<title>Dashboard Kebakaran & Tinggi Muka Air DKI</title>
 
+<!-- PapaParse -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<!-- Leaflet (Open Source) -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
 body{
@@ -14,63 +22,121 @@ body{
   margin:20px;
 }
 h1{color:#ff6b6b}
+h2{color:#6bcfff;margin-bottom:10px}
 
 .dashboard{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:14px;
+  gap:16px;
   margin-top:20px;
 }
 
 .card{
-  background:#161a24;
-  border-radius:14px;
-  padding:16px;
-  box-shadow:0 8px 20px rgba(0,0,0,.45);
+  background:linear-gradient(180deg,#1a1f2e,#141824);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
   text-align:center;
+  transform:translateY(20px);
+  opacity:0;
+  animation:fadeUp .6s ease forwards;
 }
-.card h2{
+.card:hover{
+  transform:translateY(-6px) scale(1.02);
+  box-shadow:0 14px 40px rgba(255,107,107,.25);
+}
+.card h3{
   margin:0;
   font-size:14px;
   color:#aaa;
 }
 .card .count{
-  font-size:42px;
-  font-weight:800;
+  font-size:44px;
+  font-weight:900;
   margin-top:6px;
+}
+
+@keyframes fadeUp{
+  to{transform:translateY(0);opacity:1;}
+}
+
+/* MAP */
+.section{
+  margin-top:40px;
+  background:#161a24;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+#map{
+  height:420px;
+  border-radius:12px;
+}
+iframe{
+  width:100%;
+  height:420px;
+  border:none;
+  border-radius:12px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔥 Rekap Kebakaran per Wilayah</h1>
-<p>Data otomatis dari seluruh sheet Google Spreadsheet</p>
+<h1>🔥 Dashboard Kebakaran & 🌊 Tinggi Muka Air DKI</h1>
+<p>Gratis • Online • Siap GitHub Pages</p>
 
+<!-- DASHBOARD -->
 <div class="dashboard">
-  <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
-  <div class="card"><h2>Jakarta Pusat</h2><div class="count" id="jp">0</div></div>
-  <div class="card"><h2>Jakarta Selatan</h2><div class="count" id="js">0</div></div>
-  <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
-  <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
-  <div class="card"><h2>Kepulauan Seribu</h2><div class="count" id="ks">0</div></div>
-  <div class="card"><h2>TOTAL</h2><div class="count" id="total">0</div></div>
+  <div class="card"><h3>Jakarta Barat</h3><div class="count" id="jb">0</div></div>
+  <div class="card"><h3>Jakarta Pusat</h3><div class="count" id="jp">0</div></div>
+  <div class="card"><h3>Jakarta Selatan</h3><div class="count" id="js">0</div></div>
+  <div class="card"><h3>Jakarta Timur</h3><div class="count" id="jt">0</div></div>
+  <div class="card"><h3>Jakarta Utara</h3><div class="count" id="ju">0</div></div>
+  <div class="card"><h3>Kepulauan Seribu</h3><div class="count" id="ks">0</div></div>
+  <div class="card"><h3>TOTAL</h3><div class="count" id="total">0</div></div>
+</div>
+
+<!-- MAP LEAFLET -->
+<div class="section">
+  <h2>🗺️ Peta Wilayah DKI Jakarta (Open Source)</h2>
+  <div id="map"></div>
+</div>
+
+<!-- PETA RESMI TINGGI MUKA AIR -->
+<div class="section">
+  <h2>🌊 Peta Tinggi Muka Air – Resmi DKI</h2>
+  <iframe 
+    src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir"
+    loading="lazy">
+  </iframe>
 </div>
 
 <script>
+// =====================
+// DASHBOARD CSV
+// =====================
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
 Papa.parse(CSV_URL,{
   download:true,
   skipEmptyLines:true,
-  complete:(res)=>{
-    hitung(res.data.slice(1));
-  }
+  complete:(res)=>hitung(res.data.slice(1))
 });
 
+function anim(el,val){
+  let n=0;
+  const step=Math.max(1,Math.ceil(val/40));
+  const t=setInterval(()=>{
+    n+=step;
+    if(n>=val){n=val;clearInterval(t);}
+    el.innerText=n;
+  },25);
+}
+
 function hitung(rows){
-  const count={
+  const c={
     "Jakarta Barat":0,
     "Jakarta Pusat":0,
     "Jakarta Selatan":0,
@@ -78,28 +144,44 @@ function hitung(rows){
     "Jakarta Utara":0,
     "Kepulauan Seribu":0
   };
-
   let total=0;
 
   rows.forEach(r=>{
     const jenis=(r[3]||"").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
-
-    const kota=r[7] || "";
-    if(count[kota]!==undefined){
-      count[kota]++;
-      total++;
-    }
+    const kota=r[7]||"";
+    if(c[kota]!=null){c[kota]++;total++;}
   });
 
-  document.getElementById("jb").innerText=count["Jakarta Barat"];
-  document.getElementById("jp").innerText=count["Jakarta Pusat"];
-  document.getElementById("js").innerText=count["Jakarta Selatan"];
-  document.getElementById("jt").innerText=count["Jakarta Timur"];
-  document.getElementById("ju").innerText=count["Jakarta Utara"];
-  document.getElementById("ks").innerText=count["Kepulauan Seribu"];
-  document.getElementById("total").innerText=total;
+  anim(jb,c["Jakarta Barat"]);
+  anim(jp,c["Jakarta Pusat"]);
+  anim(js,c["Jakarta Selatan"]);
+  anim(jt,c["Jakarta Timur"]);
+  anim(ju,c["Jakarta Utara"]);
+  anim(ks,c["Kepulauan Seribu"]);
+  anim(totalEl=document.getElementById("total"),total);
 }
+
+// =====================
+// LEAFLET MAP (OPEN SOURCE)
+// =====================
+const map=L.map("map").setView([-6.2,106.85],10);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  attribution:"© OpenStreetMap contributors"
+}).addTo(map);
+
+const wilayah=[
+  ["Jakarta Barat",-6.168,106.758],
+  ["Jakarta Pusat",-6.181,106.828],
+  ["Jakarta Selatan",-6.261,106.810],
+  ["Jakarta Timur",-6.225,106.900],
+  ["Jakarta Utara",-6.135,106.865]
+];
+
+wilayah.forEach(w=>{
+  L.marker([w[1],w[2]]).addTo(map).bindPopup(w[0]);
+});
 </script>
 
 </body>
