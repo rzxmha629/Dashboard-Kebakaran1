@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Rekap Kebakaran</title>
+
+<style>
+body{
+ font-family:Segoe UI,Arial;
+ background:#0f1115;
+ color:#eaeaea;
+ margin:20px;
+}
+h1{color:#ff6b6b;margin-bottom:10px}
+
+/* ===== DASHBOARD ===== */
+.dashboard{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+ gap:14px;
+ margin-bottom:20px;
+}
+.card{
+ background:linear-gradient(145deg,#1b1f2a,#11141b);
+ border-radius:14px;
+ padding:18px;
+ box-shadow:0 10px 25px rgba(0,0,0,.45);
+}
+.card h2{margin:0;font-size:15px;color:#aaa}
+.card .count{font-size:42px;font-weight:800;margin-top:6px}
+
+.jakbar{color:#ff9f43}
+.jakpus{color:#54a0ff}
+.jaksel{color:#1dd1a1}
+.jaktim{color:#f368e0}
+.jakut{color:#48dbfb}
+.seribu{color:#feca57}
+.total{color:#ff6b6b}
+
+select{
+ padding:8px 12px;
+ margin-bottom:15px;
+ border-radius:6px;
+ border:none;
+}
+
+/* ===== TABEL ===== */
+table{
+ width:100%;
+ border-collapse:collapse;
+ margin-top:15px;
+ font-size:13px;
+}
+th,td{
+ border:1px solid #2a2e3b;
+ padding:6px;
+}
+th{
+ background:#1c2130;
+ color:#ffb3b3;
+}
+tr:nth-child(even){background:#141824}
+</style>
+</head>
+
+<body>
+
+<h1>🔥 Dashboard Rekap Kebakaran</h1>
+
+<select id="bulanSelect" onchange="loadBulan()">
+ <option value="januari">Januari</option>
+ <option value="februari">Februari</option>
+</select>
+
+<div class="dashboard">
+ <div class="card"><h2>Jakarta Barat</h2><div class="count jakbar" id="c_jb">0</div></div>
+ <div class="card"><h2>Jakarta Pusat</h2><div class="count jakpus" id="c_jp">0</div></div>
+ <div class="card"><h2>Jakarta Selatan</h2><div class="count jaksel" id="c_js">0</div></div>
+ <div class="card"><h2>Jakarta Timur</h2><div class="count jaktim" id="c_jt">0</div></div>
+ <div class="card"><h2>Jakarta Utara</h2><div class="count jakut" id="c_ju">0</div></div>
+ <div class="card"><h2>Kepulauan Seribu</h2><div class="count seribu" id="c_ks">0</div></div>
+ <div class="card"><h2>Total Kejadian</h2><div class="count total" id="c_total">0</div></div>
+</div>
+
+<table>
+<thead>
+<tr>
+ <th>Hari / Tanggal</th>
+ <th>Waktu</th>
+ <th>Jenis</th>
+ <th>Alamat TKP</th>
+ <th>Kelurahan</th>
+ <th>Kecamatan</th>
+ <th>Kota</th>
+ <th>Objek</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+// =======================
+// GANTI GID DI SINI
+// =======================
+const SHEET_URL = {
+ januari: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/export?format=csv&gid=GID_JANUARI",
+ februari: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/export?format=csv&gid=GID_FEBRUARI"
+};
+
+let hasil=[];
+const tbody=document.getElementById("tbody");
+
+async function loadBulan(){
+ const bulan=document.getElementById("bulanSelect").value;
+ const res=await fetch(SHEET_URL[bulan]);
+ const csv=await res.text();
+ olahCSV(csv);
+}
+
+function olahCSV(csv){
+ hasil=[];
+ tbody.innerHTML="";
+ let unik={};
+
+ let count={
+  "Jakarta Barat":0,"Jakarta Pusat":0,"Jakarta Selatan":0,
+  "Jakarta Timur":0,"Jakarta Utara":0,"Kepulauan Seribu":0
+ };
+
+ let rows=csv.split("\n").slice(1);
+
+ rows.forEach(r=>{
+  let c=r.split(",");
+
+  let hari=c[1];
+  let waktu=c[2];
+  let jenis=c[3];
+  let alamat=c[4];
+  let kel=c[5];
+  let kec=c[6];
+  let kota=c[7];
+  let objek=c[8];
+
+  if(!jenis || !/kebakaran/i.test(jenis)) return;
+
+  let key=hari+alamat+kota;
+  if(unik[key]) return;
+  unik[key]=1;
+
+  if(count[kota]!==undefined) count[kota]++;
+
+  let tr=document.createElement("tr");
+  tr.innerHTML=`
+   <td>${hari||""}</td>
+   <td>${waktu||""}</td>
+   <td>${jenis||""}</td>
+   <td>${alamat||""}</td>
+   <td>${kel||""}</td>
+   <td>${kec||""}</td>
+   <td>${kota||""}</td>
+   <td>${objek||""}</td>`;
+  tbody.appendChild(tr);
+ });
+
+ document.getElementById("c_jb").innerText=count["Jakarta Barat"];
+ document.getElementById("c_jp").innerText=count["Jakarta Pusat"];
+ document.getElementById("c_js").innerText=count["Jakarta Selatan"];
+ document.getElementById("c_jt").innerText=count["Jakarta Timur"];
+ document.getElementById("c_ju").innerText=count["Jakarta Utara"];
+ document.getElementById("c_ks").innerText=count["Kepulauan Seribu"];
+ document.getElementById("c_total").innerText=
+  Object.values(count).reduce((a,b)=>a+b,0);
+}
+
+// auto load
+window.onload=loadBulan;
+
+// optional realtime refresh tiap 1 menit
+// setInterval(loadBulan,60000);
+</script>
+
+</body>
+</html>
