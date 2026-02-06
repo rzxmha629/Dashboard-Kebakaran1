@@ -114,7 +114,7 @@ function buildBulan(){
   const set=new Set();
 
   rows.forEach(r=>{
-    const m=getMonth(r[1]); // kolom tanggal
+    const m=getMonth(r[1]);
     if(m!==null) set.add(m);
   });
 
@@ -152,12 +152,11 @@ function render(){
     const jenis=(r[3]||"").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
-    const kota=r[7] || "";
-
+    const kota=r[7];
     if(count[kota]!==undefined) count[kota]++;
 
     const tr=document.createElement("tr");
-    r.forEach(c=>tr.innerHTML+=`<td>${c || ""}</td>`);
+    r.forEach(c=>tr.innerHTML+=`<td>${c}</td>`);
     tbody.appendChild(tr);
 
     total++;
