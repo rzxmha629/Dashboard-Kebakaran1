@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Rekap Kebakaran</title>
+<title>Rekap Kebakaran per Wilayah</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -15,59 +15,37 @@ body{
 }
 h1{color:#ff6b6b}
 
-select{
-  padding:8px 12px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:16px;
-}
-
 .dashboard{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:14px;
-  margin-bottom:20px;
+  margin-top:20px;
 }
 
 .card{
   background:#161a24;
   border-radius:14px;
-  padding:14px;
+  padding:16px;
   box-shadow:0 8px 20px rgba(0,0,0,.45);
+  text-align:center;
 }
 .card h2{
   margin:0;
-  font-size:13px;
+  font-size:14px;
   color:#aaa;
 }
 .card .count{
-  font-size:32px;
+  font-size:42px;
   font-weight:800;
+  margin-top:6px;
 }
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:12px;
-}
-th,td{
-  border:1px solid #2a2e3b;
-  padding:6px;
-}
-th{
-  background:#1c2130;
-  color:#ffb3b3;
-}
-tr:nth-child(even){background:#141824}
 </style>
 </head>
 
 <body>
 
-<h1>🔥 Dashboard Rekap Kebakaran</h1>
-
-<label>Filter Bulan:</label><br>
-<select id="bulan"></select>
+<h1>🔥 Rekap Kebakaran per Wilayah</h1>
+<p>Data otomatis dari seluruh sheet Google Spreadsheet</p>
 
 <div class="dashboard">
   <div class="card"><h2>Jakarta Barat</h2><div class="count" id="jb">0</div></div>
@@ -76,65 +54,23 @@ tr:nth-child(even){background:#141824}
   <div class="card"><h2>Jakarta Timur</h2><div class="count" id="jt">0</div></div>
   <div class="card"><h2>Jakarta Utara</h2><div class="count" id="ju">0</div></div>
   <div class="card"><h2>Kepulauan Seribu</h2><div class="count" id="ks">0</div></div>
-  <div class="card"><h2>Total</h2><div class="count" id="total">0</div></div>
+  <div class="card"><h2>TOTAL</h2><div class="count" id="total">0</div></div>
 </div>
-
-<table>
-<thead id="thead"></thead>
-<tbody id="tbody"></tbody>
-</table>
 
 <script>
 const CSV_URL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
-const bulanSelect=document.getElementById("bulan");
-const tbody=document.getElementById("tbody");
-const thead=document.getElementById("thead");
-
-let rows=[], header=[];
-
 Papa.parse(CSV_URL,{
   download:true,
   skipEmptyLines:true,
   complete:(res)=>{
-    header=res.data[0];
-    rows=res.data.slice(1);
-    buildBulan();
-    render();
+    hitung(res.data.slice(1));
   }
 });
 
-function getMonth(v){
-  const d=new Date(v);
-  return isNaN(d)?null:d.getMonth();
-}
-
-function buildBulan(){
-  const set=new Set();
-
-  rows.forEach(r=>{
-    const m=getMonth(r[1]);
-    if(m!==null) set.add(m);
-  });
-
-  [...set].sort().forEach(m=>{
-    const opt=document.createElement("option");
-    opt.value=m;
-    opt.text=new Date(2025,m,1)
-      .toLocaleString("id-ID",{month:"long"});
-    bulanSelect.appendChild(opt);
-  });
-
-  bulanSelect.value=new Date().getMonth();
-  bulanSelect.onchange=render;
-}
-
-function render(){
-  tbody.innerHTML="";
-  thead.innerHTML="<tr>"+header.map(h=>`<th>${h}</th>`).join("")+"</tr>";
-
-  let count={
+function hitung(rows){
+  const count={
     "Jakarta Barat":0,
     "Jakarta Pusat":0,
     "Jakarta Selatan":0,
@@ -144,22 +80,16 @@ function render(){
   };
 
   let total=0;
-  const bulan=Number(bulanSelect.value);
 
   rows.forEach(r=>{
-    if(getMonth(r[1])!==bulan) return;
-
     const jenis=(r[3]||"").toLowerCase();
     if(!jenis.includes("kebakaran")) return;
 
-    const kota=r[7];
-    if(count[kota]!==undefined) count[kota]++;
-
-    const tr=document.createElement("tr");
-    r.forEach(c=>tr.innerHTML+=`<td>${c}</td>`);
-    tbody.appendChild(tr);
-
-    total++;
+    const kota=r[7] || "";
+    if(count[kota]!==undefined){
+      count[kota]++;
+      total++;
+    }
   });
 
   document.getElementById("jb").innerText=count["Jakarta Barat"];
