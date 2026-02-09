@@ -2,213 +2,103 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VIDEOWALL – Kebakaran & TMA DKI</title>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMKG & Kebencanaan – Video Wall</title>
 
 <style>
-:root{
-  --bg:#0b0e14;
-  --panel:#151a26;
-  --accent:#ff6b6b;
-  --blue:#6bcfff;
-}
-*{box-sizing:border-box}
-
 html,body{
   margin:0;
-  width:100%;
+  padding:0;
+  background:#0b0e14;
   height:100%;
-  background:var(--bg);
-  color:#fff;
-  font-family:Segoe UI,Arial;
-  overflow:hidden; /* 🔴 PENTING: NO SCROLL */
+  overflow:hidden;
+  font-family:Segoe UI, Arial, sans-serif;
 }
 
-/* ===== VIDEOWALL GRID ===== */
-.videowall{
+.wall{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-rows:repeat(2,1fr);
-  width:100vw;
   height:100vh;
   gap:6px;
   padding:6px;
 }
 
-/* ===== PANEL TV ===== */
-.tv{
-  background:var(--panel);
-  border-radius:16px;
-  padding:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.6);
-  display:flex;
-  flex-direction:column;
+.panel{
+  background:#111726;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 0 18px rgba(0,0,0,.6);
+  position:relative;
 }
 
-.tv h2{
-  margin:0 0 8px;
-  font-size:18px;
-  color:var(--blue);
-  text-align:center;
+.title{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  background:rgba(0,0,0,.6);
+  padding:6px 10px;
+  font-weight:700;
+  font-size:14px;
+  color:#6bcfff;
+  z-index:10;
 }
 
-/* ===== KEBAKARAN ===== */
-.dashboard{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  flex:1;
-}
-
-.card{
-  border-radius:14px;
-  padding:10px;
-  text-align:center;
-  font-weight:800;
-}
-.card h3{
-  margin:0;
-  font-size:13px;
-  opacity:.9;
-}
-.card .count{
-  font-size:38px;
-  margin-top:4px;
-}
-
-/* WARNA */
-.jb{background:#c62828}
-.jp{background:#f9a825;color:#111}
-.js{background:#1565c0}
-.jt{background:#6a1b9a}
-.ju{background:#2e7d32}
-.ks{background:#ef6c00}
-.total{background:#b71c1c}
-
-/* ===== STATUS ===== */
-.status{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  margin-top:12px;
-}
-.badge{
-  border-radius:14px;
-  padding:18px 10px;
-  text-align:center;
-  font-size:18px;
-  font-weight:900;
-}
-.siaga1{background:#b00020}
-.siaga2{background:#f9a825;color:#111}
-.normal{background:#2e7d32}
-
-/* ===== IFRAME ===== */
 iframe{
   width:100%;
   height:100%;
   border:none;
-  border-radius:12px;
+}
+
+/* AUTO FULLSCREEN TV */
+@media (max-width:768px){
+  .title{font-size:12px}
 }
 </style>
 </head>
 
 <body>
 
-<div class="videowall">
+<div class="wall">
 
-  <!-- TV 1 : KEBAKARAN -->
-  <div class="tv">
-    <h2>🔥 Kebakaran DKI</h2>
-    <div class="dashboard">
-      <div class="card jb"><h3>Jakarta Barat</h3><div class="count" id="jb">0</div></div>
-      <div class="card jp"><h3>Jakarta Pusat</h3><div class="count" id="jp">0</div></div>
-      <div class="card js"><h3>Jakarta Selatan</h3><div class="count" id="js">0</div></div>
-      <div class="card jt"><h3>Jakarta Timur</h3><div class="count" id="jt">0</div></div>
-      <div class="card ju"><h3>Jakarta Utara</h3><div class="count" id="ju">0</div></div>
-      <div class="card ks"><h3>Kep. Seribu</h3><div class="count" id="ks">0</div></div>
-      <div class="card total"><h3>TOTAL</h3><div class="count" id="total">0</div></div>
-    </div>
-  </div>
-
-  <!-- TV 2 : STATUS -->
-  <div class="tv">
-    <h2>🚨 Status Siaga Banjir</h2>
-    <div class="status">
-      <div class="badge siaga1">SIAGA 1<br>BAHAYA</div>
-      <div class="badge siaga2">SIAGA 2<br>WASPADA</div>
-      <div class="badge normal">NORMAL</div>
-    </div>
-  </div>
-
-  <!-- TV 3 : KOSONG / LOGO -->
-  <div class="tv">
-    <h2>📡 Monitoring</h2>
-    <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.4">
-      COMMAND CENTER
-    </div>
-  </div>
-
-  <!-- TV 4 : INATEWS -->
-  <div class="tv">
-    <h2>🌏 InaTEWS BMKG</h2>
+  <!-- ATAS -->
+  <div class="panel">
+    <div class="title">🌊 InaTEWS – Peringatan Dini Tsunami</div>
     <iframe src="https://inatews.bmkg.go.id/wrs/index.html"></iframe>
   </div>
 
-  <!-- TV 5 : TMA -->
-  <div class="tv">
-    <h2>🌊 Tinggi Muka Air</h2>
-    <iframe src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir"></iframe>
+  <div class="panel">
+    <div class="title">🌋 MAGMA ESDM – Gunung Api</div>
+    <iframe src="https://magma.vsi.esdm.go.id/"></iframe>
   </div>
 
-  <!-- TV 6 : CADANGAN -->
-  <div class="tv">
-    <h2>📊 Cadangan</h2>
-    <div style="flex:1;display:flex;align-items:center;justify-content:center;opacity:.3">
-      PANEL TAMBAHAN
-    </div>
+  <div class="panel">
+    <div class="title">🔥 SIPONGI – Karhutla</div>
+    <iframe src="https://sipongi.gakkum.kehutanan.go.id/peta"></iframe>
+  </div>
+
+  <!-- BAWAH -->
+  <div class="panel">
+    <div class="title">🗺️ GIS BNPB – Bencana Nasional</div>
+    <iframe src="https://gis.bnpb.go.id/"></iframe>
+  </div>
+
+  <div class="panel">
+    <div class="title">🌍 Gempa BMKG (Realtime JSON)</div>
+    <iframe src="https://infoBMKG.github.io/data-gempabumi/"></iframe>
+  </div>
+
+  <div class="panel">
+    <div class="title">🌊 Pantau Banjir DKI</div>
+    <iframe src="https://pantaubanjir.jakarta.go.id/peta-informasi-banjir"></iframe>
   </div>
 
 </div>
 
 <script>
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
-
-Papa.parse(CSV_URL,{
-  download:true,
-  skipEmptyLines:true,
-  complete:(res)=>hitung(res.data.slice(1))
-});
-
-function hitung(rows){
-  const c={
-    "Jakarta Barat":0,
-    "Jakarta Pusat":0,
-    "Jakarta Selatan":0,
-    "Jakarta Timur":0,
-    "Jakarta Utara":0,
-    "Kepulauan Seribu":0
-  };
-  let total=0;
-
-  rows.forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran")) return;
-    if(c[r[7]]!=null){c[r[7]]++;total++;}
-  });
-
-  jb.innerText=c["Jakarta Barat"];
-  jp.innerText=c["Jakarta Pusat"];
-  js.innerText=c["Jakarta Selatan"];
-  jt.innerText=c["Jakarta Timur"];
-  ju.innerText=c["Jakarta Utara"];
-  ks.innerText=c["Kepulauan Seribu"];
-  total.innerText=total;
-}
-
-setTimeout(()=>location.reload(),300000);
+/* AUTO REFRESH 2 MENIT (SIMULASI REALTIME TV) */
+setTimeout(()=>location.reload(),120000);
 </script>
 
 </body>
