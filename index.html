@@ -20,7 +20,7 @@ html,body{
 /* ===== DASHBOARD KEBAKARAN ===== */
 #firebar{
   display:flex;
-  gap:8px;
+  gap:6px;
   padding:8px;
   background:#111;
 }
@@ -29,16 +29,16 @@ html,body{
   padding:10px;
   border-radius:6px;
   text-align:center;
-  font-weight:bold;
-  transition:0.3s;
+  font-weight:700;
+  font-size:14px;
 }
 
-/* ===== GRID VIDEOWALL ===== */
+/* ===== VIDEOWALL ===== */
 #grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-rows:repeat(2,1fr);
-  height:calc(100vh - 60px);
+  height:calc(100vh - 90px);
   gap:4px;
 }
 iframe{
@@ -48,31 +48,23 @@ iframe{
   background:#000;
 }
 
-/* ===== ALARM GEMPA ===== */
-#alarm{
+/* ===== NOTIF GEMPA ===== */
+#gempaNotif{
   position:fixed;
-  inset:0;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#8b0000;
+  color:#fff;
+  padding:10px 14px;
+  font-size:14px;
   display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  background:red;
-  font-size:4vw;
-  font-weight:bold;
-  text-align:center;
-  animation:blink 1s infinite;
-}
-@keyframes blink{
-  50%{background:#600}
+  z-index:999;
 }
 </style>
 </head>
 
 <body>
-
-<!-- ALARM -->
-<div id="alarm"></div>
-<audio id="siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
 
 <!-- DASHBOARD KEBAKARAN -->
 <div id="firebar"></div>
@@ -88,40 +80,46 @@ iframe{
   <iframe src="about:blank"></iframe>
 </div>
 
+<!-- NOTIF GEMPA -->
+<div id="gempaNotif"></div>
+
 <script>
-/* ==========================
-   DASHBOARD KEBAKARAN
-========================== */
+/* ===============================
+   DASHBOARD KEBAKARAN (AMAN)
+=============================== */
 const CSV_FIRE =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298";
 
-const warnaKota={};
+const warna={};
 
-function warnaTetap(kota){
-  if(!warnaKota[kota]){
-    warnaKota[kota]=`hsl(${Math.random()*360},70%,40%)`;
-  }
-  return warnaKota[kota];
+function warnaTetap(k){
+  if(!warna[k]) warna[k]=`hsl(${Math.random()*360},70%,40%)`;
+  return warna[k];
 }
 
 function loadFire(){
   Papa.parse(CSV_FIRE,{
     download:true,
-    header:true,
+    skipEmptyLines:true,
     complete:(res)=>{
-      let data={};
-      res.data.forEach(r=>{
-        if(!r.Kota) return;
-        data[r.Kota]=(data[r.Kota]||0)+1;
+      const rows=res.data.slice(1);
+      const hitung={};
+
+      rows.forEach(r=>{
+        const kota=r[7]; // kolom KOTA
+        const jenis=(r[3]||"").toLowerCase();
+        if(!kota) return;
+        if(!jenis.includes("kebakaran")) return;
+        hitung[kota]=(hitung[kota]||0)+1;
       });
 
       const bar=document.getElementById("firebar");
       bar.innerHTML="";
-      Object.keys(data).forEach(k=>{
+      Object.keys(hitung).forEach(k=>{
         const d=document.createElement("div");
         d.className="firebox";
         d.style.background=warnaTetap(k);
-        d.innerHTML=`🔥 ${k}<br>${data[k]}`;
+        d.innerHTML=`🔥 ${k}<br>${hitung[k]}`;
         bar.appendChild(d);
       });
     }
@@ -129,12 +127,11 @@ function loadFire(){
 }
 
 loadFire();
-/* refresh tanpa ganggu iframe */
 setInterval(loadFire,120000);
 
-/* ==========================
-   ALARM GEMPA (M ≥ 2)
-========================== */
+/* ===============================
+   GEMPA NOTIF KECIL (M ≥ 5)
+=============================== */
 let lastGempa="";
 
 async function cekGempa(){
@@ -145,27 +142,21 @@ async function cekGempa(){
     const g=x.querySelector("gempa");
 
     const mag=parseFloat(g.querySelector("Magnitude").textContent);
-    const waktu=g.querySelector("DateTime").textContent;
+    const waktu=g.querySelector("Tanggal").textContent+" "+g.querySelector("Jam").textContent;
     const wilayah=g.querySelector("Wilayah").textContent;
 
-    if(waktu!==lastGempa && mag>=2){
+    if(mag>=5 && waktu!==lastGempa){
       lastGempa=waktu;
-      alarmGempa(mag,wilayah);
+      tampilNotif(mag,wilayah,waktu);
     }
   }catch(e){}
 }
 
-function alarmGempa(mag,wil){
-  const a=document.getElementById("alarm");
-  const s=document.getElementById("siren");
-  a.innerHTML=`⚠️ GEMPA M ${mag}<br>${wil}`;
-  a.style.display="flex";
-  s.play();
-  setTimeout(()=>{
-    a.style.display="none";
-    s.pause();
-    s.currentTime=0;
-  },12000);
+function tampilNotif(mag,wil,wkt){
+  const n=document.getElementById("gempaNotif");
+  n.innerHTML=`⚠️ GEMPA M ${mag} | ${wil} | ${wkt}`;
+  n.style.display="block";
+  setTimeout(()=>n.style.display="none",15000);
 }
 
 setInterval(cekGempa,30000);
