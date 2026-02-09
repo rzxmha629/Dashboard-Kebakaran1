@@ -1,23 +1,26 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>VIDEOWALL COMMAND CENTER</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-html,body{
-  margin:0;
-  background:#0b0e14;
+/* ===== TAB ===== */
+#tabs{
+  display:flex;
+  gap:6px;
+  padding:6px;
+  background:#0d0f14;
+}
+.tab{
+  padding:8px 14px;
+  background:#222;
   color:#fff;
-  font-family:Segoe UI,Arial;
-  height:100%;
-  overflow:hidden;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+.tab.active{
+  background:#ff5722;
 }
 
-/* ===== DASHBOARD KEBAKARAN ===== */
+/* ===== FIRE DASHBOARD ===== */
 #firebar{
   display:flex;
   gap:6px;
@@ -30,87 +33,77 @@ html,body{
   border-radius:6px;
   text-align:center;
   font-weight:700;
-  font-size:14px;
-}
-
-/* ===== VIDEOWALL ===== */
-#grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(2,1fr);
-  height:calc(100vh - 90px);
-  gap:4px;
-}
-iframe{
-  width:100%;
-  height:100%;
-  border:0;
-  background:#000;
-}
-
-/* ===== NOTIF GEMPA ===== */
-#gempaNotif{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#8b0000;
-  color:#fff;
-  padding:10px 14px;
-  font-size:14px;
-  display:none;
-  z-index:999;
 }
 </style>
-</head>
 
-<body>
-
-<!-- DASHBOARD KEBAKARAN -->
-<div id="firebar"></div>
-
-<!-- VIDEOWALL -->
-<div id="grid">
-  <iframe src="https://poskobanjir.dsdadki.web.id/"></iframe>
-  <iframe src="https://sipongi.gakkum.kehutanan.go.id/peta"></iframe>
-  <iframe src="https://magma.vsi.esdm.go.id/"></iframe>
-
-  <iframe src="about:blank"></iframe>
-  <iframe src="about:blank"></iframe>
-  <iframe src="about:blank"></iframe>
+<!-- TAB BULAN -->
+<div id="tabs">
+  <div class="tab active" onclick="gantiBulan('jan',this)">Januari</div>
+  <div class="tab" onclick="gantiBulan('feb',this)">Februari</div>
 </div>
 
-<!-- NOTIF GEMPA -->
-<div id="gempaNotif"></div>
+<!-- DASHBOARD -->
+<div id="firebar"></div>
 
 <script>
-/* ===============================
-   DASHBOARD KEBAKARAN (AMAN)
-=============================== */
-const CSV_FIRE =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298";
+/* ==========================
+   DATA BULAN (TINGGAL TAMBAH)
+========================== */
+const BULAN = {
+  jan:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
+  feb:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
+};
 
-const warna={};
+const warnaKota={
+  "Jakarta Barat":"#ff5252",
+  "Jakarta Pusat":"#ffa000",
+  "Jakarta Selatan":"#00c853",
+  "Jakarta Timur":"#2979ff",
+  "Jakarta Utara":"#00bcd4",
+  "Kepulauan Seribu":"#ab47bc"
+};
 
-function warnaTetap(k){
-  if(!warna[k]) warna[k]=`hsl(${Math.random()*360},70%,40%)`;
-  return warna[k];
+function normalKota(k){
+  if(!k) return null;
+  k=k.toLowerCase();
+  if(k.includes("barat")) return "Jakarta Barat";
+  if(k.includes("pusat")) return "Jakarta Pusat";
+  if(k.includes("selatan")) return "Jakarta Selatan";
+  if(k.includes("timur")) return "Jakarta Timur";
+  if(k.includes("utara")) return "Jakarta Utara";
+  if(k.includes("seribu")) return "Kepulauan Seribu";
+  return null;
 }
 
-function loadFire(){
-  Papa.parse(CSV_FIRE,{
+function gantiBulan(key,el){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  loadFire(BULAN[key]);
+}
+
+function loadFire(url){
+  Papa.parse(url,{
     download:true,
     skipEmptyLines:true,
     complete:(res)=>{
       const rows=res.data.slice(1);
-      const hitung={};
+      const hitung={
+        "Jakarta Barat":0,
+        "Jakarta Pusat":0,
+        "Jakarta Selatan":0,
+        "Jakarta Timur":0,
+        "Jakarta Utara":0,
+        "Kepulauan Seribu":0
+      };
 
       rows.forEach(r=>{
-        const kota=r[7]; // kolom KOTA
         const jenis=(r[3]||"").toLowerCase();
+        if(!jenis.includes("kebakar")) return;
+
+        const kota=normalKota(r[7]);
         if(!kota) return;
-        if(!jenis.includes("kebakaran")) return;
-        hitung[kota]=(hitung[kota]||0)+1;
+
+        hitung[kota]++;
       });
 
       const bar=document.getElementById("firebar");
@@ -118,7 +111,7 @@ function loadFire(){
       Object.keys(hitung).forEach(k=>{
         const d=document.createElement("div");
         d.className="firebox";
-        d.style.background=warnaTetap(k);
+        d.style.background=warnaKota[k];
         d.innerHTML=`🔥 ${k}<br>${hitung[k]}`;
         bar.appendChild(d);
       });
@@ -126,41 +119,6 @@ function loadFire(){
   });
 }
 
-loadFire();
-setInterval(loadFire,120000);
-
-/* ===============================
-   GEMPA NOTIF KECIL (M ≥ 5)
-=============================== */
-let lastGempa="";
-
-async function cekGempa(){
-  try{
-    const r=await fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.xml");
-    const t=await r.text();
-    const x=new DOMParser().parseFromString(t,"text/xml");
-    const g=x.querySelector("gempa");
-
-    const mag=parseFloat(g.querySelector("Magnitude").textContent);
-    const waktu=g.querySelector("Tanggal").textContent+" "+g.querySelector("Jam").textContent;
-    const wilayah=g.querySelector("Wilayah").textContent;
-
-    if(mag>=5 && waktu!==lastGempa){
-      lastGempa=waktu;
-      tampilNotif(mag,wilayah,waktu);
-    }
-  }catch(e){}
-}
-
-function tampilNotif(mag,wil,wkt){
-  const n=document.getElementById("gempaNotif");
-  n.innerHTML=`⚠️ GEMPA M ${mag} | ${wil} | ${wkt}`;
-  n.style.display="block";
-  setTimeout(()=>n.style.display="none",15000);
-}
-
-setInterval(cekGempa,30000);
+/* LOAD DEFAULT JANUARI */
+loadFire(BULAN.jan);
 </script>
-
-</body>
-</html>
