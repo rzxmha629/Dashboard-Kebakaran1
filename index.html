@@ -2,242 +2,173 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Command Center Kebencanaan</title>
+<title>VIDEOWALL COMMAND CENTER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{
-  --bg:#0b0e14;
-  --panel:#111726;
-  --text:#eaeaea;
-  --danger:#ff3d3d;
-}
 html,body{
-  margin:0;height:100%;overflow:hidden;
-  background:var(--bg);color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
+  margin:0;
+  background:#0b0e14;
+  color:#fff;
+  font-family:Segoe UI,Arial;
+  height:100%;
+  overflow:hidden;
 }
 
 /* ===== DASHBOARD KEBAKARAN ===== */
-.topbar{
-  display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:6px;
-  padding:6px;
+#firebar{
+  display:flex;
+  gap:8px;
+  padding:8px;
+  background:#111;
 }
-.fire{
-  border-radius:14px;
-  padding:12px;
+.firebox{
+  flex:1;
+  padding:10px;
+  border-radius:6px;
   text-align:center;
-  font-weight:900;
-  font-size:14px;
+  font-weight:bold;
+  transition:0.3s;
 }
-.fire span{display:block;font-size:30px}
-.jb{background:#ff5252}
-.jp{background:#ff9800;color:#111}
-.js{background:#7c4dff}
-.jt{background:#29b6f6;color:#111}
-.ju{background:#26a69a}
-.total{background:#b71c1c}
 
-/* ===== VIDEOWALL ===== */
-.wall{
+/* ===== GRID VIDEOWALL ===== */
+#grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-rows:repeat(2,1fr);
-  gap:6px;
-  padding:6px;
-  height:calc(100vh - 92px);
+  height:calc(100vh - 60px);
+  gap:4px;
 }
-.panel{
-  background:var(--panel);
-  border-radius:14px;
-  overflow:hidden;
-  position:relative;
-}
-.title{
-  position:absolute;
-  top:0;left:0;right:0;
-  padding:6px 10px;
-  font-weight:700;
-  font-size:14px;
-  background:rgba(0,0,0,.6);
-  z-index:5;
-}
-.focus{
-  grid-column:1/span 3;
-  grid-row:1/span 2;
+iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  background:#000;
 }
 
-/* ===== GEMPA ===== */
-#autoGempa{
-  padding:40px 20px;
-  font-size:18px;
+/* ===== ALARM GEMPA ===== */
+#alarm{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  background:red;
+  font-size:4vw;
+  font-weight:bold;
+  text-align:center;
+  animation:blink 1s infinite;
 }
-.mag{
-  font-size:48px;
-  font-weight:900;
+@keyframes blink{
+  50%{background:#600}
 }
-.danger{color:var(--danger)}
-
-#glist{
-  padding:40px 14px 14px;
-  font-size:14px;
-}
-.gitem{
-  border-bottom:1px solid #333;
-  padding:6px 0;
-}
-
-iframe{width:100%;height:100%;border:0}
 </style>
 </head>
 
 <body>
 
-<!-- ===== DASHBOARD KEBAKARAN ===== -->
-<div class="topbar">
-  <div class="fire jb">JAKARTA BARAT<span id="jb">0</span></div>
-  <div class="fire jp">JAKARTA PUSAT<span id="jp">0</span></div>
-  <div class="fire js">JAKARTA SELATAN<span id="js">0</span></div>
-  <div class="fire jt">JAKARTA TIMUR<span id="jt">0</span></div>
-  <div class="fire ju">JAKARTA UTARA<span id="ju">0</span></div>
-  <div class="fire total">TOTAL<span id="total">0</span></div>
+<!-- ALARM -->
+<div id="alarm"></div>
+<audio id="siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+<!-- DASHBOARD KEBAKARAN -->
+<div id="firebar"></div>
+
+<!-- VIDEOWALL -->
+<div id="grid">
+  <iframe src="https://poskobanjir.dsdadki.web.id/"></iframe>
+  <iframe src="https://sipongi.gakkum.kehutanan.go.id/peta"></iframe>
+  <iframe src="https://magma.vsi.esdm.go.id/"></iframe>
+
+  <iframe src="about:blank"></iframe>
+  <iframe src="about:blank"></iframe>
+  <iframe src="about:blank"></iframe>
 </div>
-
-<!-- ===== VIDEOWALL ===== -->
-<div class="wall">
-
-  <div class="panel focus">
-    <div class="title">🌍 GEMPA TERKINI (XML BMKG)</div>
-    <div id="autoGempa">Memuat...</div>
-  </div>
-
-  <div class="panel">
-    <div class="title">📍 GEMPA DIRASAKAN</div>
-    <div id="glist">Memuat...</div>
-  </div>
-
-  <div class="panel">
-    <div class="title">🌊 POSKO BANJIR DKI</div>
-    <iframe id="banjir"></iframe>
-  </div>
-
-  <div class="panel">
-    <div class="title">🌋 MAGMA ESDM</div>
-    <iframe id="magma"></iframe>
-  </div>
-
-  <div class="panel">
-    <div class="title">🔥 SIPONGI KARHUTLA</div>
-    <iframe id="sipongi"></iframe>
-  </div>
-
-  <div class="panel">
-    <div class="title">ℹ️ MONITOR</div>
-  </div>
-
-</div>
-
-<!-- ===== ALARM ===== -->
-<audio id="alarm">
-  <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-</audio>
 
 <script>
-/* ===== AUTO GEMPA XML ===== */
+/* ==========================
+   DASHBOARD KEBAKARAN
+========================== */
+const CSV_FIRE =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298";
+
+const warnaKota={};
+
+function warnaTetap(kota){
+  if(!warnaKota[kota]){
+    warnaKota[kota]=`hsl(${Math.random()*360},70%,40%)`;
+  }
+  return warnaKota[kota];
+}
+
+function loadFire(){
+  Papa.parse(CSV_FIRE,{
+    download:true,
+    header:true,
+    complete:(res)=>{
+      let data={};
+      res.data.forEach(r=>{
+        if(!r.Kota) return;
+        data[r.Kota]=(data[r.Kota]||0)+1;
+      });
+
+      const bar=document.getElementById("firebar");
+      bar.innerHTML="";
+      Object.keys(data).forEach(k=>{
+        const d=document.createElement("div");
+        d.className="firebox";
+        d.style.background=warnaTetap(k);
+        d.innerHTML=`🔥 ${k}<br>${data[k]}`;
+        bar.appendChild(d);
+      });
+    }
+  });
+}
+
+loadFire();
+/* refresh tanpa ganggu iframe */
+setInterval(loadFire,120000);
+
+/* ==========================
+   ALARM GEMPA (M ≥ 2)
+========================== */
 let lastGempa="";
 
-function loadAutoGempa(){
- fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.xml?"+Date.now())
- .then(r=>r.text())
- .then(xmlText=>{
-  const xml=new DOMParser().parseFromString(xmlText,"text/xml");
-  const g=xml.querySelector("gempa");
-  const mag=parseFloat(g.querySelector("Magnitude").textContent);
-  const wilayah=g.querySelector("Wilayah").textContent;
-  const waktu=g.querySelector("Tanggal").textContent+" "+g.querySelector("Jam").textContent;
-  const kedalaman=g.querySelector("Kedalaman").textContent;
-  const potensi=g.querySelector("Potensi").textContent;
-  const shakemap=g.querySelector("Shakemap").textContent;
-  const id=waktu+mag;
+async function cekGempa(){
+  try{
+    const r=await fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.xml");
+    const t=await r.text();
+    const x=new DOMParser().parseFromString(t,"text/xml");
+    const g=x.querySelector("gempa");
 
-  if(mag>=5 && id!==lastGempa){
-    document.getElementById("alarm").play();
-    lastGempa=id;
-  }
+    const mag=parseFloat(g.querySelector("Magnitude").textContent);
+    const waktu=g.querySelector("DateTime").textContent;
+    const wilayah=g.querySelector("Wilayah").textContent;
 
-  autoGempa.innerHTML=`
-   <div class="mag ${mag>=5?'danger':''}">${mag} M</div>
-   <div>${wilayah}</div>
-   <div>Kedalaman: ${kedalaman}</div>
-   <div>${waktu}</div>
-   <div>${potensi}</div>
-   <img src="https://static.bmkg.go.id/${shakemap}"
-        style="width:100%;max-height:240px;object-fit:contain">
-  `;
- });
+    if(waktu!==lastGempa && mag>=2){
+      lastGempa=waktu;
+      alarmGempa(mag,wilayah);
+    }
+  }catch(e){}
 }
-loadAutoGempa();
-setInterval(loadAutoGempa,15000);
 
-/* ===== GEMPA DIRASAKAN ===== */
-function loadDirasakan(){
- fetch("https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.xml?"+Date.now())
- .then(r=>r.text())
- .then(xmlText=>{
-  const xml=new DOMParser().parseFromString(xmlText,"text/xml");
-  const list=xml.querySelectorAll("gempa");
-  glist.innerHTML="";
-  [...list].slice(0,10).forEach(g=>{
-    glist.innerHTML+=`
-     <div class="gitem">
-      <strong>${g.querySelector("Magnitude").textContent} M</strong>
-      – ${g.querySelector("Wilayah").textContent}<br>
-      <small>${g.querySelector("Dirasakan").textContent}</small>
-     </div>`;
-  });
- });
+function alarmGempa(mag,wil){
+  const a=document.getElementById("alarm");
+  const s=document.getElementById("siren");
+  a.innerHTML=`⚠️ GEMPA M ${mag}<br>${wil}`;
+  a.style.display="flex";
+  s.play();
+  setTimeout(()=>{
+    a.style.display="none";
+    s.pause();
+    s.currentTime=0;
+  },12000);
 }
-loadDirasakan();
-setInterval(loadDirasakan,30000);
 
-/* ===== KEBAKARAN ===== */
-const CSVs=[
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
-];
-function loadKebakaran(){
- let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- Promise.all(CSVs.map(u=>new Promise(res=>{
-  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
- }))).then(all=>{
-  all.flat().slice(1).forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
-    const k=(r[7]||"").toLowerCase();
-    c.total++;
-    if(k.includes("barat"))c.jb++;
-    else if(k.includes("pusat"))c.jp++;
-    else if(k.includes("selatan"))c.js++;
-    else if(k.includes("timur"))c.jt++;
-    else if(k.includes("utara"))c.ju++;
-  });
-  jb.innerText=c.jb; jp.innerText=c.jp; js.innerText=c.js;
-  jt.innerText=c.jt; ju.innerText=c.ju; total.innerText=c.total;
- });
-}
-loadKebakaran();
-setInterval(loadKebakaran,180000);
-
-/* ===== IFRAME REFRESH ===== */
-function reload(id,url){
- document.getElementById(id).src=url+"?t="+Date.now();
-}
-reload("banjir","https://poskobanjir.dsdadki.web.id/");
-reload("magma","https://magma.vsi.esdm.go.id/");
-reload("sipongi","https://sipongi.gakkum.kehutanan.go.id/peta");
+setInterval(cekGempa,30000);
 </script>
 
 </body>
