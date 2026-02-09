@@ -1,29 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>VIDEOWALL COMMAND CENTER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-/* ===== TAB ===== */
-#tabs{
-  display:flex;
-  gap:6px;
-  padding:6px;
-  background:#0d0f14;
-}
-.tab{
-  padding:8px 14px;
-  background:#222;
+html,body{
+  margin:0;
+  background:#0b0e14;
   color:#fff;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:600;
-}
-.tab.active{
-  background:#ff5722;
+  font-family:Segoe UI,Arial;
+  height:100%;
+  overflow:hidden;
 }
 
-/* ===== FIRE DASHBOARD ===== */
+/* ===== DASHBOARD KEBAKARAN ===== */
 #firebar{
   display:flex;
-  gap:6px;
+  gap:8px;
   padding:8px;
   background:#111;
 }
@@ -32,93 +29,147 @@
   padding:10px;
   border-radius:6px;
   text-align:center;
-  font-weight:700;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+/* ===== GRID VIDEOWALL ===== */
+#grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(2,1fr);
+  height:calc(100vh - 60px);
+  gap:4px;
+}
+iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  background:#000;
+}
+
+/* ===== ALARM GEMPA ===== */
+#alarm{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  background:red;
+  font-size:4vw;
+  font-weight:bold;
+  text-align:center;
+  animation:blink 1s infinite;
+}
+@keyframes blink{
+  50%{background:#600}
 }
 </style>
+</head>
 
-<!-- TAB BULAN -->
-<div id="tabs">
-  <div class="tab active" onclick="gantiBulan('jan',this)">Januari</div>
-  <div class="tab" onclick="gantiBulan('feb',this)">Februari</div>
-</div>
+<body>
 
-<!-- DASHBOARD -->
+<!-- ALARM -->
+<div id="alarm"></div>
+<audio id="siren" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+<!-- DASHBOARD KEBAKARAN -->
 <div id="firebar"></div>
+
+<!-- VIDEOWALL -->
+<div id="grid">
+  <iframe src="https://poskobanjir.dsdadki.web.id/"></iframe>
+  <iframe src="https://sipongi.gakkum.kehutanan.go.id/peta"></iframe>
+  <iframe src="https://magma.vsi.esdm.go.id/"></iframe>
+
+  <iframe src="about:blank"></iframe>
+  <iframe src="about:blank"></iframe>
+  <iframe src="about:blank"></iframe>
+</div>
 
 <script>
 /* ==========================
-   DATA BULAN (TINGGAL TAMBAH)
+   DASHBOARD KEBAKARAN
 ========================== */
-const BULAN = {
-  jan:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
-  feb:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
-};
+const CSV_FIRE =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298";
 
-const warnaKota={
-  "Jakarta Barat":"#ff5252",
-  "Jakarta Pusat":"#ffa000",
-  "Jakarta Selatan":"#00c853",
-  "Jakarta Timur":"#2979ff",
-  "Jakarta Utara":"#00bcd4",
-  "Kepulauan Seribu":"#ab47bc"
-};
+const warnaKota={};
 
-function normalKota(k){
-  if(!k) return null;
-  k=k.toLowerCase();
-  if(k.includes("barat")) return "Jakarta Barat";
-  if(k.includes("pusat")) return "Jakarta Pusat";
-  if(k.includes("selatan")) return "Jakarta Selatan";
-  if(k.includes("timur")) return "Jakarta Timur";
-  if(k.includes("utara")) return "Jakarta Utara";
-  if(k.includes("seribu")) return "Kepulauan Seribu";
-  return null;
+function warnaTetap(kota){
+  if(!warnaKota[kota]){
+    warnaKota[kota]=`hsl(${Math.random()*360},70%,40%)`;
+  }
+  return warnaKota[kota];
 }
 
-function gantiBulan(key,el){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  el.classList.add("active");
-  loadFire(BULAN[key]);
-}
-
-function loadFire(url){
-  Papa.parse(url,{
+function loadFire(){
+  Papa.parse(CSV_FIRE,{
     download:true,
-    skipEmptyLines:true,
+    header:true,
     complete:(res)=>{
-      const rows=res.data.slice(1);
-      const hitung={
-        "Jakarta Barat":0,
-        "Jakarta Pusat":0,
-        "Jakarta Selatan":0,
-        "Jakarta Timur":0,
-        "Jakarta Utara":0,
-        "Kepulauan Seribu":0
-      };
-
-      rows.forEach(r=>{
-        const jenis=(r[3]||"").toLowerCase();
-        if(!jenis.includes("kebakar")) return;
-
-        const kota=normalKota(r[7]);
-        if(!kota) return;
-
-        hitung[kota]++;
+      let data={};
+      res.data.forEach(r=>{
+        if(!r.Kota) return;
+        data[r.Kota]=(data[r.Kota]||0)+1;
       });
 
       const bar=document.getElementById("firebar");
       bar.innerHTML="";
-      Object.keys(hitung).forEach(k=>{
+      Object.keys(data).forEach(k=>{
         const d=document.createElement("div");
         d.className="firebox";
-        d.style.background=warnaKota[k];
-        d.innerHTML=`🔥 ${k}<br>${hitung[k]}`;
+        d.style.background=warnaTetap(k);
+        d.innerHTML=`🔥 ${k}<br>${data[k]}`;
         bar.appendChild(d);
       });
     }
   });
 }
 
-/* LOAD DEFAULT JANUARI */
-loadFire(BULAN.jan);
+loadFire();
+/* refresh tanpa ganggu iframe */
+setInterval(loadFire,120000);
+
+/* ==========================
+   ALARM GEMPA (M ≥ 2)
+========================== */
+let lastGempa="";
+
+async function cekGempa(){
+  try{
+    const r=await fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.xml");
+    const t=await r.text();
+    const x=new DOMParser().parseFromString(t,"text/xml");
+    const g=x.querySelector("gempa");
+
+    const mag=parseFloat(g.querySelector("Magnitude").textContent);
+    const waktu=g.querySelector("DateTime").textContent;
+    const wilayah=g.querySelector("Wilayah").textContent;
+
+    if(waktu!==lastGempa && mag>=2){
+      lastGempa=waktu;
+      alarmGempa(mag,wilayah);
+    }
+  }catch(e){}
+}
+
+function alarmGempa(mag,wil){
+  const a=document.getElementById("alarm");
+  const s=document.getElementById("siren");
+  a.innerHTML=`⚠️ GEMPA M ${mag}<br>${wil}`;
+  a.style.display="flex";
+  s.play();
+  setTimeout(()=>{
+    a.style.display="none";
+    s.pause();
+    s.currentTime=0;
+  },12000);
+}
+
+setInterval(cekGempa,30000);
 </script>
+
+</body>
+</html>
