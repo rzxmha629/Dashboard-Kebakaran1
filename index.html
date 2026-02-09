@@ -5,30 +5,53 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Command Center Kebencanaan</title>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
 :root{
   --bg:#0b0e14;
   --panel:#111726;
   --text:#eaeaea;
-  --accent:#6bcfff;
-}
-.light{
-  --bg:#f4f7fb;
-  --panel:#ffffff;
-  --text:#222;
 }
 html,body{
   margin:0;height:100%;overflow:hidden;
   background:var(--bg);color:var(--text);
   font-family:Segoe UI,Arial,sans-serif;
 }
+
+/* ===== DASHBOARD KEBAKARAN ===== */
+.topbar{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:6px;
+  padding:6px;
+}
+.fire{
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+  font-weight:900;
+  font-size:14px;
+}
+.fire span{
+  display:block;
+  font-size:34px;
+}
+.jb{background:#ff5252}
+.jp{background:#ff9800;color:#111}
+.js{background:#7c4dff}
+.jt{background:#29b6f6;color:#111}
+.ju{background:#26a69a}
+.total{background:#c62828}
+
+/* ===== VIDEOWALL ===== */
 .wall{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-rows:repeat(2,1fr);
   gap:6px;
   padding:6px;
-  height:100vh;
+  height:calc(100vh - 96px);
 }
 .panel{
   background:var(--panel);
@@ -43,39 +66,14 @@ html,body{
   padding:6px 10px;
   font-weight:700;
   font-size:14px;
-  background:rgba(0,0,0,.55);
-  color:var(--accent);
+  background:rgba(0,0,0,.6);
   z-index:10;
 }
-.content{
-  padding:34px 12px 12px;
+iframe{
+  width:100%;
   height:100%;
-  overflow:auto;
+  border:0;
 }
-
-/* GEMPA */
-.gempa strong{font-size:34px;color:#ff5252}
-.gempa div{margin-top:6px;font-size:16px}
-
-/* KEBAKARAN */
-.kebakaran{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-.card{
-  background:linear-gradient(135deg,#ff512f,#dd2476);
-  border-radius:12px;
-  padding:14px;
-  text-align:center;
-  font-weight:800;
-}
-.card span{
-  display:block;
-  font-size:34px;
-}
-
-/* ROTASI */
 .focus{
   grid-column:1 / span 3;
   grid-row:1 / span 2;
@@ -86,93 +84,90 @@ html,body{
 
 <body>
 
+<!-- ===== DASHBOARD KEBAKARAN (1 BARIS) ===== -->
+<div class="topbar">
+  <div class="fire jb">JAKARTA BARAT<span id="jb">0</span></div>
+  <div class="fire jp">JAKARTA PUSAT<span id="jp">0</span></div>
+  <div class="fire js">JAKARTA SELATAN<span id="js">0</span></div>
+  <div class="fire jt">JAKARTA TIMUR<span id="jt">0</span></div>
+  <div class="fire ju">JAKARTA UTARA<span id="ju">0</span></div>
+  <div class="fire total">TOTAL<span id="total">0</span></div>
+</div>
+
+<!-- ===== VIDEOWALL ===== -->
 <div class="wall">
 
-<!-- GEMPA REALTIME -->
-<div class="panel" data-rotate>
-  <div class="title">🌍 GEMPA TERKINI BMKG (Realtime)</div>
-  <div class="content gempa" id="gempa">Memuat...</div>
-</div>
-
-<!-- MAGMA -->
-<div class="panel">
-  <div class="title">🌋 MAGMA ESDM</div>
-  <iframe id="magma" style="width:100%;height:100%;border:0"></iframe>
-</div>
-
-<!-- SIPONGI -->
-<div class="panel">
-  <div class="title">🔥 SIPONGI KARHUTLA</div>
-  <iframe id="sipongi" style="width:100%;height:100%;border:0"></iframe>
-</div>
-
-<!-- INATEWS -->
-<div class="panel">
-  <div class="title">🌊 InaTEWS Tsunami</div>
-  <iframe id="inatews" style="width:100%;height:100%;border:0"></iframe>
-</div>
-
-<!-- KEBAKARAN -->
-<div class="panel" data-rotate>
-  <div class="title">🔥 DASHBOARD KEBAKARAN (JAN–FEB)</div>
-  <div class="content kebakaran">
-    <div class="card">JAKBAR<span id="jb">0</span></div>
-    <div class="card">JAKPUS<span id="jp">0</span></div>
-    <div class="card">JAKSEL<span id="js">0</span></div>
-    <div class="card">JAKTIM<span id="jt">0</span></div>
-    <div class="card">JAKUT<span id="ju">0</span></div>
-    <div class="card">TOTAL<span id="total">0</span></div>
+  <div class="panel" data-rotate>
+    <div class="title">🌍 GEMPA TERKINI BMKG (Realtime)</div>
+    <div id="gempa" style="padding:36px;font-size:18px">Memuat...</div>
   </div>
-</div>
 
-<!-- BNPB -->
-<div class="panel">
-  <div class="title">🗺️ GIS BNPB</div>
-  <iframe id="bnpb" style="width:100%;height:100%;border:0"></iframe>
-</div>
+  <div class="panel">
+    <div class="title">🌊 POSKO BANJIR DKI</div>
+    <iframe id="banjir"></iframe>
+  </div>
+
+  <div class="panel">
+    <div class="title">🌋 MAGMA ESDM</div>
+    <iframe id="magma"></iframe>
+  </div>
+
+  <div class="panel">
+    <div class="title">🔥 SIPONGI KARHUTLA</div>
+    <iframe id="sipongi"></iframe>
+  </div>
+
+  <div class="panel" data-rotate>
+    <div class="title">🗺️ GIS BNPB</div>
+    <iframe id="bnpb"></iframe>
+  </div>
+
+  <div class="panel">
+    <div class="title">ℹ️ MONITOR SISTEM</div>
+    <iframe src="about:blank"></iframe>
+  </div>
 
 </div>
 
 <script>
-/* ================= MODE SIANG / MALAM ================= */
-const h=new Date().getHours();
-if(h>=6 && h<18)document.body.classList.add("light");
-
-/* ================= GEMPA REALTIME ================= */
+/* ===== GEMPA REALTIME ===== */
 function loadGempa(){
  fetch("https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json?"+Date.now())
  .then(r=>r.json())
  .then(d=>{
-   const g=d.Infogempa.gempa;
-   gempa.innerHTML=`
-    <strong>${g.Magnitude} M</strong>
-    <div>${g.Wilayah}</div>
-    <div>Kedalaman: ${g.Kedalaman}</div>
-    <div>Waktu: ${g.Tanggal} ${g.Jam}</div>
-    <div>${g.Potensi}</div>`;
+  const g=d.Infogempa.gempa;
+  gempa.innerHTML=`
+    <strong style="font-size:32px;color:#ff5252">${g.Magnitude} M</strong><br>
+    ${g.Wilayah}<br>
+    Kedalaman: ${g.Kedalaman}<br>
+    ${g.Tanggal} ${g.Jam}<br>
+    ${g.Potensi}
+  `;
  });
 }
 loadGempa();
 setInterval(loadGempa,15000);
 
-/* ================= KEBAKARAN (JAN + FEB) ================= */
-const csvs=[
+/* ===== KEBAKARAN (PER KOTA) ===== */
+const CSVs=[
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
 ];
 
 function loadKebakaran(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- Promise.all(csvs.map(u=>fetch(u).then(r=>r.text()))).then(all=>{
-  all.join("\n").split("\n").slice(1).forEach(r=>{
-   const d=r.split(",");
-   if(!d[3]?.toLowerCase().includes("kebakaran"))return;
-   c.total++;
-   if(d[7]=="Jakarta Barat")c.jb++;
-   if(d[7]=="Jakarta Pusat")c.jp++;
-   if(d[7]=="Jakarta Selatan")c.js++;
-   if(d[7]=="Jakarta Timur")c.jt++;
-   if(d[7]=="Jakarta Utara")c.ju++;
+ Promise.all(CSVs.map(u=>new Promise(res=>{
+  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
+ }))).then(all=>{
+  all.flat().slice(1).forEach(r=>{
+    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
+    const kota=(r[7]||"").toLowerCase();
+    c.total++;
+    if(kota.includes("barat"))c.jb++;
+    else if(kota.includes("pusat"))c.jp++;
+    else if(kota.includes("selatan"))c.js++;
+    else if(kota.includes("timur"))c.jt++;
+    else if(kota.includes("utara"))c.ju++;
   });
   jb.innerText=c.jb; jp.innerText=c.jp; js.innerText=c.js;
   jt.innerText=c.jt; ju.innerText=c.ju; total.innerText=c.total;
@@ -181,21 +176,21 @@ function loadKebakaran(){
 loadKebakaran();
 setInterval(loadKebakaran,180000);
 
-/* ================= SMART IFRAME REFRESH ================= */
-function reloadIframe(id,url){
+/* ===== SMART IFRAME REFRESH ===== */
+function reload(id,url){
  document.getElementById(id).src=url+"?t="+Date.now();
 }
-reloadIframe("magma","https://magma.vsi.esdm.go.id/");
-reloadIframe("sipongi","https://sipongi.gakkum.kehutanan.go.id/peta");
-reloadIframe("inatews","https://inatews.bmkg.go.id/wrs/index.html");
-reloadIframe("bnpb","https://gis.bnpb.go.id/");
+reload("banjir","https://poskobanjir.dsdadki.web.id/");
+reload("magma","https://magma.vsi.esdm.go.id/");
+reload("sipongi","https://sipongi.gakkum.kehutanan.go.id/peta");
+reload("bnpb","https://gis.bnpb.go.id/");
 
-setInterval(()=>reloadIframe("inatews","https://inatews.bmkg.go.id/wrs/index.html"),60000);
-setInterval(()=>reloadIframe("sipongi","https://sipongi.gakkum.kehutanan.go.id/peta"),180000);
-setInterval(()=>reloadIframe("magma","https://magma.vsi.esdm.go.id/"),300000);
-setInterval(()=>reloadIframe("bnpb","https://gis.bnpb.go.id/"),300000);
+setInterval(()=>reload("banjir","https://poskobanjir.dsdadki.web.id/"),120000);
+setInterval(()=>reload("sipongi","https://sipongi.gakkum.kehutanan.go.id/peta"),180000);
+setInterval(()=>reload("magma","https://magma.vsi.esdm.go.id/"),300000);
+setInterval(()=>reload("bnpb","https://gis.bnpb.go.id/"),300000);
 
-/* ================= ROTASI FOKUS ================= */
+/* ===== ROTASI FOKUS ===== */
 const rot=document.querySelectorAll("[data-rotate]");
 let i=0;
 setInterval(()=>{
