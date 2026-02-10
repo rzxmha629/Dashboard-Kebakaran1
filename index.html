@@ -57,6 +57,7 @@ h2{margin:8px 12px;font-size:16px}
 .pink{background:#ec407a}
 .lime{background:#cddc39}
 </style>
+
 </head>
 
 <body>
@@ -64,7 +65,7 @@ h2{margin:8px 12px;font-size:16px}
 <h1>🔥 DATA KEBAKARAN 2026</h1>
 <div class="tabs" id="tabs"></div>
 
-<!-- COUNT KOTA -->
+<!-- REKAP KOTA -->
 <div class="grid grid-6">
   <div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
   <div class="card">Jakpus<span id="jp">0</span><div class="bar red"></div></div>
@@ -108,20 +109,19 @@ h2{margin:8px 12px;font-size:16px}
 
 <script>
 
-const SHEETS = {
-  0: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/gviz/tq?tqx=out:csv&gid=1241106342",
-  1: "https://docs.google.com/spreadsheets/d/1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET/gviz/tq?tqx=out:csv&gid=1284284298"
-};
+// PUBLIC CSV URL (semua sheet sekaligus)
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
+// Nama bulan
 const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-let bulanAktif=new Date().getMonth();
+let bulanAktif=new Date().getMonth(); // default sesuai bulan lokal
 
-function safe(v){
-  return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0;
-}
+// bersihkan angka
+function num(v){return parseInt((v||"0").toString().replace(/\D/g,""))||0;}
 
+// buat tab bulan
 function buatTab(){
-  tabs.innerHTML="";
+  tabs.innerHTML = "";
   bulan.forEach((b,i)=>{
     const d=document.createElement("div");
     d.className="tab"+(i===bulanAktif?" active":"");
@@ -131,57 +131,65 @@ function buatTab(){
   });
 }
 
+// load & hitung otomatis
 function loadData(){
-  if(!SHEETS[bulanAktif]) return;
-
-  Papa.parse(SHEETS[bulanAktif],{
+  Papa.parse(CSV_URL,{
     download:true,
     header:true,
     skipEmptyLines:true,
-    complete:function(res){
+    complete:function(r){
 
+      // reset semua
       let kota={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
-      let totalRumah=0,totalKK=0,totalOrang=0;
-      let totalMeninggal=0,totalSakit=0;
-      let totalLK=0,totalPR=0;
+      let terdampak={rumah:0,kk:0,orang:0};
+      let korban=0, pasien=0;
+      let peng={lk:0,pr:0};
+      let usia={balital:0,balitap:0,anakl:0,anakp:0,dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
-      let usia={
-        balital:0,balitap:0,anakl:0,anakp:0,
-        dewasal:0,dewasap:0,lansial:0,lansiap:0
-      };
+      r.data.forEach(row=>{
 
-      res.data.forEach(r=>{
+        // filter Baris jika bukan kebakaran
+        if(!(row["Jenis Kejadian"]||"").toLowerCase().includes("kebakaran")) return;
 
-        if(!(r["Jenis Kejadian"]||"").toLowerCase().includes("kebakaran")) return;
+        // filter berdasarkan bulan nama
+        const bulanRow = (row["Bulan"]||"").toLowerCase();
+        if(!bulanRow.includes(bulan[bulanAktif].toLowerCase())) return;
 
-        const kotaNama=(r["Kota"]||"").toLowerCase();
+        // hitung kota
+        const k=(row["Kota"]||"").toLowerCase();
         kota.total++;
-        if(kotaNama.includes("barat")) kota.jb++;
-        else if(kotaNama.includes("pusat")) kota.jp++;
-        else if(kotaNama.includes("selatan")) kota.js++;
-        else if(kotaNama.includes("timur")) kota.jt++;
-        else if(kotaNama.includes("utara")) kota.ju++;
+        if(k.includes("barat")) kota.jb++;
+        if(k.includes("pusat")) kota.jp++;
+        if(k.includes("selatan")) kota.js++;
+        if(k.includes("timur")) kota.jt++;
+        if(k.includes("utara")) kota.ju++;
 
-        totalRumah += safe(r["Jumlah Rumah"]);
-        totalKK    += safe(r["Jumlah KK"]);
-        totalOrang += safe(r["Jumlah Orang"]);
+        // hitung terdampak
+        terdampak.rumah += num(row["Jumlah Rumah"]);
+        terdampak.kk    += num(row["Jumlah KK"]);
+        terdampak.orang += num(row["Jumlah Orang"]);
 
-        totalMeninggal += safe(r["Jumlah Korban / Meninggal"]);
-        totalSakit     += safe(r["Jumlah Sakit"]);
+        // korban & pasien
+        korban += num(row["Jumlah Korban / Meninggal"]);
+        pasien += num(row["Jumlah Sakit"]);
 
-        totalLK += safe(r["Jumlah Laki-Laki"]);
-        totalPR += safe(r["Jumlah Perempuan"]);
+        // pengungsian
+        peng.lk += num(row["Jumlah Laki-Laki"]);
+        peng.pr += num(row["Jumlah Perempuan"]);
 
-        usia.balital += safe(r["Balita (Laki-Laki)"]);
-        usia.balitap += safe(r["Balita (Perempuan)"]);
-        usia.anakl   += safe(r["Anak (Laki-Laki)"]);
-        usia.anakp   += safe(r["Anak (Perempuan)"]);
-        usia.dewasal += safe(r["Dewasa (laki-Laki)"]);
-        usia.dewasap += safe(r["Dewasa (Perempuan)"]);
-        usia.lansial += safe(r["Lansia (laki-Laki)"]);
-        usia.lansiap += safe(r["Lansia (Perempuan)"]);
+        // usia
+        usia.balital += num(row["Balita (Laki-Laki)"]);
+        usia.balitap += num(row["Balita (Perempuan)"]);
+        usia.anakl   += num(row["Anak (Laki-Laki)"]);
+        usia.anakp   += num(row["Anak (Perempuan)"]);
+        usia.dewasal += num(row["Dewasa (laki-Laki)"]);
+        usia.dewasap += num(row["Dewasa (Perempuan)"]);
+        usia.lansial += num(row["Lansia (Laki-Laki)"]);
+        usia.lansiap += num(row["Lansia (Perempuan)"]);
+
       });
 
+      // tampilkan hasil
       jb.innerText=kota.jb;
       jp.innerText=kota.jp;
       js.innerText=kota.js;
@@ -189,16 +197,16 @@ function loadData(){
       ju.innerText=kota.ju;
       total.innerText=kota.total;
 
-      rumah.innerText=totalRumah;
-      kk.innerText=totalKK;
-      orang.innerText=totalOrang;
+      rumah.innerText=terdampak.rumah;
+      kk.innerText=terdampak.kk;
+      orang.innerText=terdampak.orang;
 
-      meninggal.innerText=totalMeninggal;
-      sakit.innerText=totalSakit;
+      meninggal.innerText=korban;
+      sakit.innerText=pasien;
 
-      lk.innerText=totalLK;
-      pr.innerText=totalPR;
-      totpengungsi.innerText=totalLK+totalPR;
+      lk.innerText=peng.lk;
+      pr.innerText=peng.pr;
+      totpengungsi.innerText=peng.lk+peng.pr;
 
       balital.innerText=usia.balital;
       balitap.innerText=usia.balitap;
@@ -208,6 +216,7 @@ function loadData(){
       dewasap.innerText=usia.dewasap;
       lansial.innerText=usia.lansial;
       lansiap.innerText=usia.lansiap;
+
     }
   });
 }
