@@ -118,9 +118,12 @@ const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","
 let bulanAktif=new Date().getMonth();
 let last={};
 
-function num(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
+// fungsi aman untuk angka
+function safeNum(v){ 
+  v = (v||"").toString().replace(/[^0-9]/g,"");
+  return v===""?0:parseInt(v);
+}
 
-/* PARSING BULAN AMAN */
 function getBulan(t){
  t=(t||"").toLowerCase();
  if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
@@ -131,61 +134,73 @@ function getBulan(t){
  return p?parseInt(p[2])-1:-1;
 }
 
-/* ANIMASI */
 function animate(id,val){
- const el=document.getElementById(id);
- const s=last[id]||0,d=val-s;let t0=null;
- function step(ts){
-  if(!t0)t0=ts;
-  const p=Math.min((ts-t0)/600,1);
-  el.innerText=Math.floor(s+d*p);
-  if(p<1)requestAnimationFrame(step);
- }
- last[id]=val;requestAnimationFrame(step);
+  const el=document.getElementById(id);
+  const s=last[id]||0,d=val-s;let t0=null;
+  function step(ts){
+    if(!t0)t0=ts;
+    const p=Math.min((ts-t0)/600,1);
+    el.innerText=Math.floor(s+d*p);
+    if(p<1)requestAnimationFrame(step);
+  }
+  last[id]=val;
+  requestAnimationFrame(step);
 }
 
 function buatTab(){
- tabs.innerHTML="";
- bulan.forEach((b,i)=>{
-  const d=document.createElement("div");
-  d.className="tab"+(i===bulanAktif?" active":"");
-  d.innerText=b;
-  d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
-  tabs.appendChild(d);
- });
+  tabs.innerHTML="";
+  bulan.forEach((b,i)=>{
+    const d=document.createElement("div");
+    d.className="tab"+(i===bulanAktif?" active":"");
+    d.innerText=b;
+    d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
+    tabs.appendChild(d);
+  });
 }
 
 function loadData(){
- let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
-        balital:0,balitap:0,anakl:0,anakp:0,
-        dewasal:0,dewasap:0,lansial:0,lansiap:0};
+  last={};
 
- Promise.all(CSVs.map(u=>new Promise(res=>{
-  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
- }))).then(all=>{
-  all.flat().slice(1).forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
-    if(getBulan(r[1])!==bulanAktif)return;
+  let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
+  let d={rumah:0,kk:0,orang:0,
+         tot:0,lk:0,pr:0,
+         balital:0,balitap:0,anakl:0,anakp:0,
+         dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
-    const kota=(r[7]||"").toLowerCase();
-    k.total++;
-    if(kota.includes("barat"))k.jb++;
-    else if(kota.includes("pusat"))k.jp++;
-    else if(kota.includes("selatan"))k.js++;
-    else if(kota.includes("timur"))k.jt++;
-    else if(kota.includes("utara"))k.ju++;
+  Promise.all(CSVs.map(u=>new Promise(res=>{
+    Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
+  }))).then(all=>{
+    all.flat().slice(1).forEach(r=>{
+      if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
+      if(getBulan(r[1])!==bulanAktif)return;
 
-    d.rumah+=num(r[10]); d.kk+=num(r[11]); d.orang+=num(r[12]);
-    d.tot+=num(r[13]); d.lk+=num(r[14]); d.pr+=num(r[15]);
-    d.balital+=num(r[16]); d.balitap+=num(r[17]);
-    d.anakl+=num(r[18]); d.anakp+=num(r[19]);
-    d.dewasal+=num(r[20]); d.dewasap+=num(r[21]);
-    d.lansial+=num(r[22]); d.lansiap+=num(r[23]);
+      const kota=(r[7]||"").toLowerCase();
+      k.total++;
+      if(kota.includes("barat"))k.jb++;
+      else if(kota.includes("pusat"))k.jp++;
+      else if(kota.includes("selatan"))k.js++;
+      else if(kota.includes("timur"))k.jt++;
+      else if(kota.includes("utara"))k.ju++;
+
+      // Jumlah Terdampak ambil dari kolom
+      d.rumah += safeNum(r[10]);
+      d.kk    += safeNum(r[11]);
+      d.orang += safeNum(r[12]);
+
+      // Jumlah Pengungsian
+      d.tot += safeNum(r[13]);
+      d.lk  += safeNum(r[14]);
+      d.pr  += safeNum(r[15]);
+
+      // Kategori usia
+      d.balital += safeNum(r[16]); d.balitap += safeNum(r[17]);
+      d.anakl   += safeNum(r[18]); d.anakp += safeNum(r[19]);
+      d.dewasal += safeNum(r[20]); d.dewasap += safeNum(r[21]);
+      d.lansial += safeNum(r[22]); d.lansiap += safeNum(r[23]);
+    });
+
+    Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
   });
-
-  Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
- });
 }
 
 buatTab();loadData();
