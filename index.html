@@ -2,193 +2,164 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<title>Dashboard Kebakaran</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard Kebakaran 2026</title>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{
-  --bg:#0b0e14;
-  --panel:#111726;
-  --text:#eaeaea;
+body{margin:0;font-family:Arial;background:#0f1115;color:#fff}
+header{padding:15px;font-size:20px;font-weight:bold;text-align:center}
+.tabs{display:flex;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.tabs button{
+  margin:3px;padding:6px 12px;border:0;border-radius:20px;
+  background:#222;color:#ccc;cursor:pointer
 }
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
-}
-h1{margin:10px;font-size:22px;font-weight:900}
-h2{margin:8px 12px;font-size:16px}
+.tabs button.active{background:#ff9800;color:#000}
 
-/* TAB */
-.tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
-.tab{
-  padding:6px 14px;
-  background:#222;
-  border-radius:20px;
-  cursor:pointer;
-  font-weight:700;
-}
-.tab.active{background:#ff5252;color:#111}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:15px}
 
-/* GRID */
-.grid{display:grid;gap:8px;padding:8px}
-.grid-6{grid-template-columns:repeat(6,1fr)}
-.grid-3{grid-template-columns:repeat(3,1fr)}
-.grid-4{grid-template-columns:repeat(4,1fr)}
-
-/* CARD */
 .card{
-  background:var(--panel);
-  border-radius:14px;
-  padding:12px;
-  text-align:center;
-  font-weight:800;
-  position:relative;
-  overflow:hidden;
+  background:#1c1f26;border-radius:14px;padding:15px;
+  box-shadow:0 0 10px rgba(0,0,0,.4)
 }
-.card span{display:block;font-size:32px;margin-top:4px}
+.card h3{margin:0 0 10px;font-size:15px;color:#ffb74d}
 
-/* BAR */
-.bar{position:absolute;left:0;right:0;bottom:0;height:6px}
-.red{background:#ff5252}
-.orange{background:#ff9800}
-.blue{background:#29b6f6}
-.green{background:#26a69a}
-.purple{background:#7c4dff}
-.teal{background:#00bcd4}
-.pink{background:#ec407a}
-.lime{background:#cddc39}
+.row{display:flex;justify-content:space-between;margin:6px 0}
+.bar{
+  height:6px;border-radius:4px;background:linear-gradient(90deg,#ff9800,#ff5722);
+  margin-top:6px;transition:width .6s
+}
+.value{font-weight:bold;font-size:20px}
+.small{font-size:13px;color:#aaa}
 </style>
 </head>
 
 <body>
 
-<h1>🔥 DATA KEBAKARAN 2026</h1>
+<header>DASHBOARD KEBAKARAN</header>
+
 <div class="tabs" id="tabs"></div>
 
-<!-- REKAP KOTA -->
-<div class="grid grid-6">
-  <div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
-  <div class="card">Jakpus<span id="jp">0</span><div class="bar red"></div></div>
-  <div class="card">Jaksel<span id="js">0</span><div class="bar red"></div></div>
-  <div class="card">Jaktim<span id="jt">0</span><div class="bar red"></div></div>
-  <div class="card">Jakut<span id="ju">0</span><div class="bar red"></div></div>
-  <div class="card">Total<span id="total">0</span><div class="bar red"></div></div>
+<div class="grid">
+
+<div class="card">
+  <h3>Jumlah Terdampak</h3>
+  <div class="row"><span>Rumah</span><span id="rumah" class="value">0</span></div>
+  <div class="row"><span>KK</span><span id="kk" class="value">0</span></div>
+  <div class="row"><span>Orang</span><span id="orang" class="value">0</span></div>
+  <div class="bar" id="barTerdampak"></div>
 </div>
 
-<!-- JUMLAH TERDAMPAK -->
-<h2>Jumlah Terdampak</h2>
-<div class="grid grid-3">
-  <div class="card">Rumah<span id="rumah">0</span><div class="bar orange"></div></div>
-  <div class="card">KK<span id="kk">0</span><div class="bar blue"></div></div>
-  <div class="card">Orang<span id="orang">0</span><div class="bar green"></div></div>
+<div class="card">
+  <h3>Jumlah Pengungsian</h3>
+  <div class="row"><span>Total</span><span id="pengTotal" class="value">0</span></div>
+  <div class="row small">Laki-laki <span id="pengL">0</span></div>
+  <div class="row small">Perempuan <span id="pengP">0</span></div>
 </div>
 
-<!-- JUMLAH PENGUNGSIAN -->
-<h2>Jumlah Pengungsian</h2>
-<div class="grid grid-3">
-  <div class="card">Total<span id="tot">0</span><div class="bar red"></div></div>
-  <div class="card">Laki-Laki<span id="lk">0</span><div class="bar teal"></div></div>
-  <div class="card">Perempuan<span id="pr">0</span><div class="bar pink"></div></div>
+<div class="card">
+  <h3>Berdasarkan Kategori Usia</h3>
+  <div class="row small">Balita L/P <span id="balita">0 / 0</span></div>
+  <div class="row small">Anak L/P <span id="anak">0 / 0</span></div>
+  <div class="row small">Dewasa L/P <span id="dewasa">0 / 0</span></div>
+  <div class="row small">Lansia L/P <span id="lansia">0 / 0</span></div>
 </div>
 
-<!-- KATEGORI USIA -->
-<h2>Jumlah Berdasarkan Kategori Usia</h2>
-<div class="grid grid-4">
-  <div class="card">Balita L<span id="balital">0</span><div class="bar lime"></div></div>
-  <div class="card">Balita P<span id="balitap">0</span><div class="bar lime"></div></div>
-  <div class="card">Anak L<span id="anakl">0</span><div class="bar teal"></div></div>
-  <div class="card">Anak P<span id="anakp">0</span><div class="bar teal"></div></div>
-  <div class="card">Dewasa L<span id="dewasal">0</span><div class="bar blue"></div></div>
-  <div class="card">Dewasa P<span id="dewasap">0</span><div class="bar blue"></div></div>
-  <div class="card">Lansia L<span id="lansial">0</span><div class="bar purple"></div></div>
-  <div class="card">Lansia P<span id="lansiap">0</span><div class="bar purple"></div></div>
 </div>
 
 <script>
-const CSVs=[
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
-];
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
-const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-let bulanAktif=new Date().getMonth();
-let last={};
+let bulanAktif = new Date().getMonth();
+const bulanNama=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
-function num(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
+const tabs=document.getElementById("tabs");
+bulanNama.forEach((b,i)=>{
+  const btn=document.createElement("button");
+  btn.textContent=b;
+  if(i===bulanAktif) btn.classList.add("active");
+  btn.onclick=()=>{
+    bulanAktif=i;
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    loadData();
+  };
+  tabs.appendChild(btn);
+});
 
-/* PARSING BULAN AMAN */
+function num(v){
+  v=(v||"").toString().replace(/[^0-9]/g,'');
+  return v===""?0:parseInt(v,10);
+}
+
 function getBulan(t){
- t=(t||"").toLowerCase();
- if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
- if(t.includes("apr"))return 3;if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
- if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;if(t.includes("sep"))return 8;
- if(t.includes("okt"))return 9;if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
- const p=t.match(/(\d{1,2})[\/\-](\d{1,2})/);
- return p?parseInt(p[2])-1:-1;
+  t=(t||"").toLowerCase();
+  if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;
+  if(t.includes("mar"))return 2;if(t.includes("apr"))return 3;
+  if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
+  if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;
+  if(t.includes("sep"))return 8;if(t.includes("okt"))return 9;
+  if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
+  const p=t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]/);
+  return p?parseInt(p[2])-1:-1;
 }
 
-/* ANIMASI */
 function animate(id,val){
- const el=document.getElementById(id);
- const s=last[id]||0,d=val-s;let t0=null;
- function step(ts){
-  if(!t0)t0=ts;
-  const p=Math.min((ts-t0)/600,1);
-  el.innerText=Math.floor(s+d*p);
-  if(p<1)requestAnimationFrame(step);
- }
- last[id]=val;requestAnimationFrame(step);
-}
-
-function buatTab(){
- tabs.innerHTML="";
- bulan.forEach((b,i)=>{
-  const d=document.createElement("div");
-  d.className="tab"+(i===bulanAktif?" active":"");
-  d.innerText=b;
-  d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
-  tabs.appendChild(d);
- });
+  const el=document.getElementById(id);
+  const start=parseInt(el.textContent)||0;
+  const dur=500,startTime=performance.now();
+  function step(t){
+    const p=Math.min((t-startTime)/dur,1);
+    el.textContent=Math.floor(start+(val-start)*p);
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
 }
 
 function loadData(){
- let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
-        balital:0,balitap:0,anakl:0,anakp:0,
-        dewasal:0,dewasap:0,lansial:0,lansiap:0};
+Papa.parse(SHEET_URL,{
+download:true,
+header:false,
+complete:r=>{
+let rumah=0,kk=0,orang=0;
+let pT=0,pL=0,pP=0;
+let bL=0,bP=0,aL=0,aP=0,dL=0,dP=0,lL=0,lP=0;
 
- Promise.all(CSVs.map(u=>new Promise(res=>{
-  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
- }))).then(all=>{
-  all.flat().slice(1).forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
-    if(getBulan(r[1])!==bulanAktif)return;
+r.data.forEach(x=>{
+ if(getBulan(x[1])!==bulanAktif)return;
 
-    const kota=(r[7]||"").toLowerCase();
-    k.total++;
-    if(kota.includes("barat"))k.jb++;
-    else if(kota.includes("pusat"))k.jp++;
-    else if(kota.includes("selatan"))k.js++;
-    else if(kota.includes("timur"))k.jt++;
-    else if(kota.includes("utara"))k.ju++;
+ rumah+=num(x[10]);
+ kk+=num(x[11]);
+ orang+=num(x[12]);
 
-    d.rumah+=num(r[10]); d.kk+=num(r[11]); d.orang+=num(r[12]);
-    d.tot+=num(r[13]); d.lk+=num(r[14]); d.pr+=num(r[15]);
-    d.balital+=num(r[16]); d.balitap+=num(r[17]);
-    d.anakl+=num(r[18]); d.anakp+=num(r[19]);
-    d.dewasal+=num(r[20]); d.dewasap+=num(r[21]);
-    d.lansial+=num(r[22]); d.lansiap+=num(r[23]);
-  });
+ pT+=num(x[13]); pL+=num(x[14]); pP+=num(x[15]);
 
-  Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
- });
+ bL+=num(x[16]); bP+=num(x[17]);
+ aL+=num(x[18]); aP+=num(x[19]);
+ dL+=num(x[20]); dP+=num(x[21]);
+ lL+=num(x[22]); lP+=num(x[23]);
+});
+
+animate("rumah",rumah);
+animate("kk",kk);
+animate("orang",orang);
+
+animate("pengTotal",pT);
+animate("pengL",pL);
+animate("pengP",pP);
+
+document.getElementById("balita").textContent=`${bL} / ${bP}`;
+document.getElementById("anak").textContent=`${aL} / ${aP}`;
+document.getElementById("dewasa").textContent=`${dL} / ${dP}`;
+document.getElementById("lansia").textContent=`${lL} / ${lP}`;
+
+document.getElementById("barTerdampak").style.width=
+  Math.min(100,(rumah+kk+orang)/10)+"%";
+}});
 }
 
-buatTab();loadData();
+loadData();
 setInterval(loadData,180000);
 </script>
 
