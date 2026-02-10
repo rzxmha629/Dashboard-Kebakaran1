@@ -9,7 +9,7 @@
 :root{
   --bg:#0b0f14;
   --card:#141925;
-  --txt:#fff;
+  --txt:#ffffff;
 }
 body{
   margin:0;
@@ -18,14 +18,14 @@ body{
   color:var(--txt);
 }
 header{
-  padding:15px;
+  padding:16px;
   font-size:22px;
-  font-weight:bold;
+  font-weight:700;
 }
 .months{
   display:flex;
   gap:6px;
-  padding:0 15px 10px;
+  padding:0 16px 10px;
   flex-wrap:wrap;
 }
 .months button{
@@ -33,18 +33,12 @@ header{
   border:none;
   color:#fff;
   padding:6px 12px;
-  border-radius:20px;
+  border-radius:18px;
   cursor:pointer;
 }
-.months button.active{
-  background:#ff4d4d;
-}
+.months button.active{background:#ff4d4d}
 
-.grid{
-  display:grid;
-  gap:12px;
-  padding:0 15px 15px;
-}
+.grid{display:grid;gap:12px;padding:0 16px 16px}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
 .grid-1{grid-template-columns:1fr}
@@ -57,32 +51,17 @@ header{
   position:relative;
 }
 .card h4{margin:0;font-size:14px;opacity:.9}
-.card span{
-  font-size:30px;
-  font-weight:bold;
-  display:block;
-  margin-top:6px;
-}
-.bar{
-  height:4px;
-  width:100%;
-  position:absolute;
-  bottom:0;left:0;
-  border-radius:0 0 14px 14px;
-}
+.card span{font-size:30px;font-weight:bold;display:block;margin-top:6px}
+.bar{height:4px;width:100%;position:absolute;bottom:0;left:0;border-radius:0 0 14px 14px}
+
 .red{background:#ff4d4d}
 .blue{background:#3fa9f5}
 .green{background:#4caf50}
 .orange{background:#ff9800}
 .teal{background:#00bcd4}
 .pink{background:#e91e63}
-.purple{background:#9c27b0}
-.yellow{background:#cddc39}
 
-h3{
-  margin:10px 15px 6px;
-  font-weight:600;
-}
+h3{margin:8px 16px;font-weight:600}
 </style>
 </head>
 
@@ -127,7 +106,11 @@ h3{
 </div>
 
 <script>
-const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pubhtml";
+/* =======================
+   GOOGLE SHEETS (GVIZ)
+   ======================= */
+const SHEET_ID="1S4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA";
+const SHEET_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
 const bulanNama=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 let bulanAktif=1;
@@ -146,18 +129,25 @@ bulanNama.forEach((b,i)=>{
   bulanDiv.appendChild(btn);
 });
 
-function num(v){v=parseInt(v);return isNaN(v)?0:v}
+function num(v){
+  if(v===null||v===undefined) return 0;
+  const n=parseInt(v.toString().replace(/\D/g,""));
+  return isNaN(n)?0:n;
+}
 
 function loadData(){
  let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
  let d={rumah:0,kk:0,orang:0,korban:0,pengTotal:0,pengL:0,pengP:0,pasien:0};
 
- fetch(SHEET_URL).then(r=>r.text()).then(t=>{
-  const doc=new DOMParser().parseFromString(t,"text/html");
-  const rows=[...doc.querySelectorAll("table tr")].slice(1);
+ fetch(SHEET_URL)
+ .then(r=>r.text())
+ .then(txt=>{
+  const json=JSON.parse(txt.substring(47,txt.length-2));
+  const rows=json.table.rows;
 
   rows.forEach(r=>{
-    const c=[...r.children].map(td=>td.innerText.trim());
+    const c=r.c.map(x=>x?x.v:"");
+
     if(!(c[3]||"").toLowerCase().includes("kebakaran")) return;
 
     const bln=new Date(c[1]).getMonth()+1;
@@ -181,9 +171,9 @@ function loadData(){
     d.pasien+=num(c[11]);
   });
 
-  Object.entries({...k,...d}).forEach(([i,v])=>{
-    const el=document.getElementById(i);
-    if(el) el.textContent=v;
+  Object.entries({...k,...d}).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=val;
   });
  });
 }
