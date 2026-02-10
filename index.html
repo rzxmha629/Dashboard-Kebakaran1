@@ -9,20 +9,20 @@
 :root{
   --bg:#0b0e14;
   --panel:#111726;
-  --text:#fff;
+  --text:#eaeaea;
 }
 body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI}
-h1{margin:10px;font-size:22px}
-h2{margin:8px 12px;font-size:15px}
+h1{margin:10px;font-size:22px;font-weight:900}
+h2{margin:8px 12px;font-size:16px}
 .tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
 .tab{padding:6px 14px;background:#222;border-radius:20px;cursor:pointer;font-weight:700}
-.tab.active{background:#ff5252;color:#000}
+.tab.active{background:#ff5252;color:#111}
 .grid{display:grid;gap:8px;padding:8px}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
 .grid-4{grid-template-columns:repeat(4,1fr)}
 .card{background:var(--panel);border-radius:14px;padding:12px;text-align:center;font-weight:800}
-.card span{display:block;font-size:26px;margin-top:4px}
+.card span{display:block;font-size:28px;margin-top:4px}
 </style>
 </head>
 
@@ -51,22 +51,34 @@ h2{margin:8px 12px;font-size:15px}
 <div class="grid grid-3">
 <div class="card">Meninggal<span id="meninggal">0</span></div>
 <div class="card">Jumlah Pasien (Sakit)<span id="sakit">0</span></div>
-<div class="card">Pengungsian Total<span id="tot">0</span></div>
+<div class="card">Pengungsian Laki-Laki<span id="lk">0</span></div>
 </div>
 
 <h2>Jumlah Pengungsian</h2>
 <div class="grid grid-3">
-<div class="card">Laki-Laki<span id="lk">0</span></div>
 <div class="card">Perempuan<span id="pr">0</span></div>
-<div class="card">Total<span id="tot2">0</span></div>
+<div class="card">Total Pengungsi<span id="totPengungsi">0</span></div>
+<div class="card"></div>
+</div>
+
+<h2>Jumlah Berdasarkan Kategori Usia</h2>
+<div class="grid grid-4">
+<div class="card">Balita L<span id="balital">0</span></div>
+<div class="card">Balita P<span id="balitap">0</span></div>
+<div class="card">Anak L<span id="anakl">0</span></div>
+<div class="card">Anak P<span id="anakp">0</span></div>
+<div class="card">Dewasa L<span id="dewasal">0</span></div>
+<div class="card">Dewasa P<span id="dewasap">0</span></div>
+<div class="card">Lansia L<span id="lansial">0</span></div>
+<div class="card">Lansia P<span id="lansiap">0</span></div>
 </div>
 
 <script>
 const sheetID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
 
 const bulanMap={
-0:1241106342, // Januari
-1:1284284298  // Februari
+0:1241106342,
+1:1284284298
 };
 
 const namaBulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
@@ -85,16 +97,9 @@ tabs.appendChild(t);
 
 function num(v){return parseInt(v)||0}
 
-function getIndex(cols,name){
-return cols.findIndex(c=>c.toLowerCase().trim()===name.toLowerCase());
-}
-
 function loadData(){
 let gid=bulanMap[bulanAktif];
-if(!gid){
-reset();
-return;
-}
+if(!gid){reset();return;}
 
 fetch(`https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gid=${gid}`)
 .then(r=>r.text())
@@ -103,65 +108,90 @@ fetch(`https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gi
 
 let cols=res.table.cols.map(c=>c.label.trim());
 
-let iKota=getIndex(cols,"Kota");
-let iRumah=getIndex(cols,"Jumlah Rumah");
-let iKK=getIndex(cols,"Jumlah KK");
-let iOrang=getIndex(cols,"Jumlah Orang");
-let iMeninggal=getIndex(cols,"Jumlah Korban / Meninggal");
-let iSakit=getIndex(cols,"Jumlah Sakit");
-let iLK=getIndex(cols,"Jumlah Laki-Laki");
-let iPR=getIndex(cols,"Jumlah Perempuan");
-let iTotal=getIndex(cols,"Jumlah Total");
+function idx(n){return cols.findIndex(c=>c.toLowerCase()===n.toLowerCase())}
 
-let kotaCount={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
-let data={rumah:0,kk:0,orang:0,meninggal:0,sakit:0,lk:0,pr:0,tot:0};
+let iKota=idx("Kota");
+let iRumah=idx("Jumlah Rumah");
+let iKK=idx("Jumlah KK");
+let iOrang=idx("Jumlah Orang");
+let iMeninggal=idx("Jumlah Korban / Meninggal");
+let iSakit=idx("Jumlah Sakit");
+let iLK=idx("Jumlah Laki-Laki");
+let iPR=idx("Jumlah Perempuan");
+
+let iBalitaL=idx("Balita (Laki-Laki)");
+let iBalitaP=idx("Balita (Perempuan)");
+let iAnakL=idx("Anak (Laki-Laki)");
+let iAnakP=idx("Anak (Perempuan)");
+let iDewasaL=idx("Dewasa (laki-Laki)");
+let iDewasaP=idx("Dewasa (Perempuan)");
+let iLansiaL=idx("Lansia (laki-Laki)");
+let iLansiaP=idx("Lansia (Perempuan)");
+
+let kota={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
+let d={rumah:0,kk:0,orang:0,meninggal:0,sakit:0,lk:0,pr:0,
+balital:0,balitap:0,anakl:0,anakp:0,dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
 res.table.rows.forEach(r=>{
 let c=r.c;
 if(!c[iKota]||!c[iKota].v)return;
 
-let kota=c[iKota].v.toLowerCase();
+let kotaNama=c[iKota].v.toLowerCase();
+kota.total++;
+if(kotaNama.includes("barat"))kota.jb++;
+if(kotaNama.includes("pusat"))kota.jp++;
+if(kotaNama.includes("selatan"))kota.js++;
+if(kotaNama.includes("timur"))kota.jt++;
+if(kotaNama.includes("utara"))kota.ju++;
 
-kotaCount.total++;
-if(kota.includes("barat"))kotaCount.jb++;
-if(kota.includes("pusat"))kotaCount.jp++;
-if(kota.includes("selatan"))kotaCount.js++;
-if(kota.includes("timur"))kotaCount.jt++;
-if(kota.includes("utara"))kotaCount.ju++;
+d.rumah+=num(c[iRumah]?.v);
+d.kk+=num(c[iKK]?.v);
+d.orang+=num(c[iOrang]?.v);
+d.meninggal+=num(c[iMeninggal]?.v);
+d.sakit+=num(c[iSakit]?.v);
+d.lk+=num(c[iLK]?.v);
+d.pr+=num(c[iPR]?.v);
 
-data.rumah+=num(c[iRumah]?.v);
-data.kk+=num(c[iKK]?.v);
-data.orang+=num(c[iOrang]?.v);
-data.meninggal+=num(c[iMeninggal]?.v);
-data.sakit+=num(c[iSakit]?.v);
-data.lk+=num(c[iLK]?.v);
-data.pr+=num(c[iPR]?.v);
-data.tot+=num(c[iTotal]?.v);
+d.balital+=num(c[iBalitaL]?.v);
+d.balitap+=num(c[iBalitaP]?.v);
+d.anakl+=num(c[iAnakL]?.v);
+d.anakp+=num(c[iAnakP]?.v);
+d.dewasal+=num(c[iDewasaL]?.v);
+d.dewasap+=num(c[iDewasaP]?.v);
+d.lansial+=num(c[iLansiaL]?.v);
+d.lansiap+=num(c[iLansiaP]?.v);
 });
 
-document.getElementById("jb").innerText=kotaCount.jb;
-document.getElementById("jp").innerText=kotaCount.jp;
-document.getElementById("js").innerText=kotaCount.js;
-document.getElementById("jt").innerText=kotaCount.jt;
-document.getElementById("ju").innerText=kotaCount.ju;
-document.getElementById("total").innerText=kotaCount.total;
+document.getElementById("jb").innerText=kota.jb;
+document.getElementById("jp").innerText=kota.jp;
+document.getElementById("js").innerText=kota.js;
+document.getElementById("jt").innerText=kota.jt;
+document.getElementById("ju").innerText=kota.ju;
+document.getElementById("total").innerText=kota.total;
 
-document.getElementById("rumah").innerText=data.rumah;
-document.getElementById("kk").innerText=data.kk;
-document.getElementById("orang").innerText=data.orang;
-document.getElementById("meninggal").innerText=data.meninggal;
-document.getElementById("sakit").innerText=data.sakit;
-document.getElementById("lk").innerText=data.lk;
-document.getElementById("pr").innerText=data.pr;
-document.getElementById("tot").innerText=data.tot;
-document.getElementById("tot2").innerText=data.tot;
+document.getElementById("rumah").innerText=d.rumah;
+document.getElementById("kk").innerText=d.kk;
+document.getElementById("orang").innerText=d.orang;
+document.getElementById("meninggal").innerText=d.meninggal;
+document.getElementById("sakit").innerText=d.sakit;
+document.getElementById("lk").innerText=d.lk;
+document.getElementById("pr").innerText=d.pr;
+document.getElementById("totPengungsi").innerText=d.lk+d.pr;
+
+document.getElementById("balital").innerText=d.balital;
+document.getElementById("balitap").innerText=d.balitap;
+document.getElementById("anakl").innerText=d.anakl;
+document.getElementById("anakp").innerText=d.anakp;
+document.getElementById("dewasal").innerText=d.dewasal;
+document.getElementById("dewasap").innerText=d.dewasap;
+document.getElementById("lansial").innerText=d.lansial;
+document.getElementById("lansiap").innerText=d.lansiap;
 
 });
 }
 
 function reset(){
-["jb","jp","js","jt","ju","total","rumah","kk","orang","meninggal","sakit","lk","pr","tot","tot2"]
-.forEach(id=>document.getElementById(id).innerText=0);
+document.querySelectorAll("span").forEach(s=>s.innerText=0);
 }
 
 buatTabs();
