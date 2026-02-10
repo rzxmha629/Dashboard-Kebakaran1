@@ -52,7 +52,6 @@ h2{margin:8px 12px;font-size:16px}
 <h1>🔥 DATA KEBAKARAN 2026</h1>
 <div class="tabs" id="tabs"></div>
 
-<!-- REKAP KOTA -->
 <div class="grid grid-6">
   <div class="card">Jakbar<span id="jb">0</span><div class="bar"></div></div>
   <div class="card">Jakpus<span id="jp">0</span><div class="bar"></div></div>
@@ -62,19 +61,16 @@ h2{margin:8px 12px;font-size:16px}
   <div class="card">Total<span id="total">0</span><div class="bar"></div></div>
 </div>
 
-<!-- KORBAN -->
 <h2>Korban / Meninggal</h2>
 <div class="grid grid-3">
   <div class="card">Jumlah<span id="korban">0</span></div>
 </div>
 
-<!-- PASIEN -->
 <h2>Jumlah Pasien (Sakit)</h2>
 <div class="grid grid-3">
   <div class="card">Jumlah<span id="pasien">0</span></div>
 </div>
 
-<!-- TERDAMPAK -->
 <h2>Jumlah Terdampak</h2>
 <div class="grid grid-3">
   <div class="card">Rumah<span id="rumah">0</span></div>
@@ -82,7 +78,6 @@ h2{margin:8px 12px;font-size:16px}
   <div class="card">Orang<span id="orang">0</span></div>
 </div>
 
-<!-- PENGUNGSIAN -->
 <h2>Jumlah Pengungsian</h2>
 <div class="grid grid-3">
   <div class="card">Total<span id="pengTotal">0</span></div>
@@ -94,14 +89,14 @@ h2{margin:8px 12px;font-size:16px}
 const SHEET_ID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
 
 const GID={
-  0:"1241106342", // JANUARI
-  1:"1284284298"  // FEBRUARI
+  0:"1241106342",
+  1:"1284284298"
 };
 
 const bulan=["Jan","Feb"];
 let aktif=0;
 
-function n(v){
+function num(v){
  if(!v) return 0;
  const x=parseInt(v.toString().replace(/\D/g,""));
  return isNaN(x)?0:x;
@@ -123,14 +118,7 @@ function buatTab(){
  });
 }
 
-function reset(){
- ["jb","jp","js","jt","ju","total","korban","pasien",
-  "rumah","kk","orang","pengTotal","pengL","pengP"]
- .forEach(id=>document.getElementById(id).innerText=0);
-}
-
 function loadData(){
- reset();
  if(!GID[aktif]) return;
 
  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID[aktif]}&tqx=out:json`;
@@ -139,31 +127,50 @@ function loadData(){
  .then(r=>r.text())
  .then(t=>{
   const json=JSON.parse(t.substring(47,t.length-2));
-  json.table.rows.forEach(row=>{
-   const c=row.c.map(x=>x?x.v:"");
-   if(!(c[3]||"").toLowerCase().includes("kebakaran")) return;
+  const rows=json.table.rows;
 
-   total.innerText++;
-   const kota=(c[7]||"").toLowerCase();
-   if(kota.includes("barat")) jb.innerText++;
-   else if(kota.includes("pusat")) jp.innerText++;
-   else if(kota.includes("selatan")) js.innerText++;
-   else if(kota.includes("timur")) jt.innerText++;
-   else if(kota.includes("utara")) ju.innerText++;
-
-   // ===== MAPPING SESUAI STRUKTUR SHEET KAMU =====
-
-   korban.innerText     = n(korban.innerText)     + n(c[9]);   // Jumlah Korban/Meninggal
-   pasien.innerText     = n(pasien.innerText)     + n(c[10]);  // Jumlah Sakit
-
-   rumah.innerText      = n(rumah.innerText)      + n(c[12]);  // Jumlah Rumah
-   kk.innerText         = n(kk.innerText)         + n(c[13]);  // Jumlah KK
-   orang.innerText      = n(orang.innerText)      + n(c[14]);  // Jumlah Orang
-
-   pengTotal.innerText  = n(pengTotal.innerText)  + n(c[15]);  // Jumlah Total
-   pengL.innerText      = n(pengL.innerText)      + n(c[16]);  // Laki-Laki
-   pengP.innerText      = n(pengP.innerText)      + n(c[17]);  // Perempuan
+  let h={};
+  json.table.cols.forEach((col,i)=>{
+    h[col.label.trim().toLowerCase()]=i;
   });
+
+  let data={
+    jb:0,jp:0,js:0,jt:0,ju:0,total:0,
+    korban:0,pasien:0,
+    rumah:0,kk:0,orang:0,
+    pengTotal:0,pengL:0,pengP:0
+  };
+
+  rows.forEach(r=>{
+    const c=r.c.map(x=>x?x.v:"");
+    const jenis=(c[h["jenis kejadian"]]||"").toLowerCase();
+    if(!jenis.includes("kebakaran")) return;
+
+    data.total++;
+
+    const kota=(c[h["kota"]]||"").toLowerCase();
+    if(kota.includes("barat")) data.jb++;
+    else if(kota.includes("pusat")) data.jp++;
+    else if(kota.includes("selatan")) data.js++;
+    else if(kota.includes("timur")) data.jt++;
+    else if(kota.includes("utara")) data.ju++;
+
+    data.korban += num(c[h["jumlah korban / meninggal"]]);
+    data.pasien += num(c[h["jumlah sakit"]]);
+
+    data.rumah  += num(c[h["jumlah rumah"]]);
+    data.kk     += num(c[h["jumlah kk"]]);
+    data.orang  += num(c[h["jumlah orang"]]);
+
+    data.pengTotal += num(c[h["jumlah total"]]);
+    data.pengL     += num(c[h["jumlah laki-laki"]]);
+    data.pengP     += num(c[h["jumlah perempuan"]]);
+  });
+
+  Object.keys(data).forEach(id=>{
+    document.getElementById(id).innerText=data[id];
+  });
+
  });
 }
 
