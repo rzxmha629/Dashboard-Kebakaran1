@@ -73,12 +73,9 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 </div>
 
 <script>
-const SPREADSHEET_BASE="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=";
-
-// Daftar sheet (gid) dan label tab otomatis
-const SHEETS=[ 
-  {gid:"1241106342", label:"Jan"}, 
-  {gid:"1284284298", label:"Feb"}
+const SHEETS=[
+  {label:"Jan", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1241106342&single=true&output=csv"},
+  {label:"Feb", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1284284298&single=true&output=csv"}
 ];
 
 const COL_KEYS={
@@ -96,7 +93,6 @@ let bulanAktif=0;
 let last={};
 const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
 
-// Animasi angka
 function animate(id,val){
  const e=document.getElementById(id),s=last[id]||0,d=val-s;
  let t0=null;
@@ -109,7 +105,6 @@ function animate(id,val){
  last[id]=val;requestAnimationFrame(a);
 }
 
-// Buat tab
 function buatTab(){
  const tabs=document.getElementById("tabs");
  tabs.innerHTML="";
@@ -122,21 +117,18 @@ function buatTab(){
  });
 }
 
-// Load data
 function load(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
  let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
         balital:0,balitap:0,anakl:0,anakp:0,
         dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
- Papa.parse(SPREADSHEET_BASE+SHEETS[bulanAktif].gid,{
+ Papa.parse(SHEETS[bulanAktif].url,{
   download:true,skipEmptyLines:true,
   complete:r=>{
     if(!r.data || r.data.length<2) return;
-
-    // Mapping header otomatis (trim & lowercase)
-    const headers=r.data[0].map(h=>h.trim());
-    const idx=Object.fromEntries(headers.map((v,i)=>[v.toLowerCase(),i]));
+    const headers=r.data[0].map(h=>h.trim().toLowerCase());
+    const idx=Object.fromEntries(headers.map((v,i)=>[v,i]));
 
     r.data.slice(1).forEach(row=>{
       const jenis=(row[idx[COL_KEYS.jenis.toLowerCase()]||""]||"").toLowerCase();
@@ -177,6 +169,5 @@ buatTab();
 load();
 setInterval(load,180000);
 </script>
-
 </body>
 </html>
