@@ -8,17 +8,8 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{
-  --bg:#0b0e14;
-  --panel:#111726;
-  --text:#eaeaea;
-}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
-}
+:root{--bg:#0b0e14;--panel:#111726;--text:#eaeaea}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
 h1{margin:10px;font-size:22px;font-weight:900}
 h2{margin:8px 12px;font-size:16px;opacity:.9}
 
@@ -31,14 +22,7 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 .grid-3{grid-template-columns:repeat(3,1fr)}
 .grid-4{grid-template-columns:repeat(4,1fr)}
 
-.card{
-  background:var(--panel);
-  border-radius:14px;
-  padding:10px;
-  text-align:center;
-  font-weight:800;
-  position:relative;
-}
+.card{background:var(--panel);border-radius:14px;padding:10px;text-align:center;font-weight:800;position:relative}
 .card span{display:block;font-size:30px;margin-top:4px}
 .bar{position:absolute;left:0;right:0;bottom:0;height:6px}
 .red{background:#ff5252}.orange{background:#ff9800}
@@ -51,7 +35,6 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 <body>
 
 <h1>🔥 DATA KEBAKARAN 2026</h1>
-
 <div class="tabs" id="tabs"></div>
 
 <h2>DATA KEJADIAN KEBAKARAN 2026</h2>
@@ -96,44 +79,51 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 </div>
 
 <script>
-const CSVs=[
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
-];
-
-const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-let bulanAktif=new Date().getMonth();
-let last={};
-
-const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
-const parseMonth=t=>{
-  if(!t)return -1;
-  const p=t.split("/");
-  return p.length===3 ? parseInt(p[1])-1 : -1;
+const SHEETS={
+  0:"1241106342", // Januari
+  1:"1284284298"  // Februari
 };
 
+const BASE="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=";
+
+const COL={
+ jenis:"Jenis Kejadian", kota:"Kota",
+ rumah:"Jumlah Rumah", kk:"Jumlah KK", orang:"Jumlah Terdampak",
+ pengungsi:"Jumlah Pengungsian", lk:"Laki-Laki", pr:"Perempuan",
+ sakit:"Jumlah Sakit",
+ balitaL:"Balita L", balitaP:"Balita P",
+ anakL:"Anak L", anakP:"Anak P",
+ dewasaL:"Dewasa L", dewasaP:"Dewasa P",
+ lansiaL:"Lansia L", lansiaP:"Lansia P"
+};
+
+const bulan=["Jan","Feb"];
+let bulanAktif=0,last={};
+
+const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
+const mapHeader=h=>Object.fromEntries(h.map((v,i)=>[v.trim(),i]));
+
 function animate(id,val){
-  const e=document.getElementById(id);
-  const s=last[id]||0,d=val-s;
-  let t0=null;
-  function a(ts){
-    if(!t0)t0=ts;
-    const p=Math.min((ts-t0)/500,1);
-    e.innerText=Math.floor(s+d*p);
-    if(p<1)requestAnimationFrame(a);
-  }
-  last[id]=val;requestAnimationFrame(a);
+ const e=document.getElementById(id),s=last[id]||0,d=val-s;
+ let t0=null;
+ function a(ts){
+  if(!t0)t0=ts;
+  const p=Math.min((ts-t0)/500,1);
+  e.innerText=Math.floor(s+d*p);
+  if(p<1)requestAnimationFrame(a);
+ }
+ last[id]=val;requestAnimationFrame(a);
 }
 
 function buatTab(){
-  tabs.innerHTML="";
-  bulan.forEach((b,i)=>{
-    const t=document.createElement("div");
-    t.className="tab"+(i===bulanAktif?" active":"");
-    t.innerText=b;
-    t.onclick=()=>{bulanAktif=i;buatTab();load()};
-    tabs.appendChild(t);
-  });
+ tabs.innerHTML="";
+ bulan.forEach((b,i)=>{
+  const t=document.createElement("div");
+  t.className="tab"+(i===bulanAktif?" active":"");
+  t.innerText=b;
+  t.onclick=()=>{bulanAktif=i;buatTab();load()};
+  tabs.appendChild(t);
+ });
 }
 
 function load(){
@@ -142,35 +132,40 @@ function load(){
         balital:0,balitap:0,anakl:0,anakp:0,
         dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
- Promise.all(CSVs.map(u=>new Promise(r=>{
-  Papa.parse(u,{download:true,skipEmptyLines:true,complete:x=>r(x.data)});
- }))).then(all=>{
-  all.flat().slice(1).forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
-    if(parseMonth(r[1])!==bulanAktif)return;
+ Papa.parse(BASE+SHEETS[bulanAktif],{
+  download:true,skipEmptyLines:true,
+  complete:r=>{
+    const idx=mapHeader(r.data[0]);
+    r.data.slice(1).forEach(row=>{
+      if(!row[idx[COL.jenis]]?.toLowerCase().includes("kebakaran"))return;
 
-    const kota=(r[7]||"").toLowerCase();
-    c.total++;
-    if(kota.includes("barat"))c.jb++;
-    else if(kota.includes("pusat"))c.jp++;
-    else if(kota.includes("selatan"))c.js++;
-    else if(kota.includes("timur"))c.jt++;
-    else if(kota.includes("utara"))c.ju++;
+      const kota=(row[idx[COL.kota]]||"").toLowerCase();
+      c.total++;
+      if(kota.includes("barat"))c.jb++;
+      else if(kota.includes("pusat"))c.jp++;
+      else if(kota.includes("selatan"))c.js++;
+      else if(kota.includes("timur"))c.jt++;
+      else if(kota.includes("utara"))c.ju++;
 
-    d.rumah+=num(r[10]);
-    d.kk+=num(r[11]);
-    d.orang+=num(r[12]);
-    d.tot+=num(r[13]);
-    d.lk+=num(r[14]);
-    d.pr+=num(r[15]);
-    d.pasien+=num(r[9]);
+      d.rumah+=num(row[idx[COL.rumah]]);
+      d.kk+=num(row[idx[COL.kk]]);
+      d.orang+=num(row[idx[COL.orang]]);
+      d.tot+=num(row[idx[COL.pengungsi]]);
+      d.lk+=num(row[idx[COL.lk]]);
+      d.pr+=num(row[idx[COL.pr]]);
+      d.pasien+=num(row[idx[COL.sakit]]);
 
-    d.balital+=num(r[16]); d.balitap+=num(r[17]);
-    d.anakl+=num(r[18]); d.anakp+=num(r[19]);
-    d.dewasal+=num(r[20]); d.dewasap+=num(r[21]);
-    d.lansial+=num(r[22]); d.lansiap+=num(r[23]);
-  });
-  Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
+      d.balital+=num(row[idx[COL.balitaL]]);
+      d.balitap+=num(row[idx[COL.balitaP]]);
+      d.anakl+=num(row[idx[COL.anakL]]);
+      d.anakp+=num(row[idx[COL.anakP]]);
+      d.dewasal+=num(row[idx[COL.dewasaL]]);
+      d.dewasap+=num(row[idx[COL.dewasaP]]);
+      d.lansial+=num(row[idx[COL.lansiaL]]);
+      d.lansiap+=num(row[idx[COL.lansiaP]]);
+    });
+    Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
+  }
  });
 }
 
