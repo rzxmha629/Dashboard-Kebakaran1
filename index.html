@@ -78,18 +78,6 @@ const SHEETS=[
   {label:"Feb", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1284284298&single=true&output=csv"}
 ];
 
-// Kolom sesuai CSV
-const COL_KEYS={
- kota:"Kota",
- rumah:"Jumlah Rumah", kk:"Jumlah KK", orang:"Jumlah Orang",
- pengungsianTotal:"Jumlah Total", lk:"Jumlah Laki-Laki", pr:"Jumlah Perempuan",
- pasien:"Pasien Sakit",
- balital:"Balita L", balitap:"Balita P",
- anakl:"Anak L", anakp:"Anak P",
- dewasal:"Dewasa L", dewasap:"Dewasa P",
- lansial:"Lansia L", lansiap:"Lansia P"
-};
-
 let bulanAktif=0;
 let last={};
 const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
@@ -118,13 +106,11 @@ function buatTab(){
  });
 }
 
+// Fungsi load fleksibel
 function load(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={
-   rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
-   balital:0,balitap:0,anakl:0,anakp:0,
-   dewasal:0,dewasap:0,lansial:0,lansiap:0
- };
+ let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
+        balital:0,balitap:0,anakl:0,anakp:0,dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
  Papa.parse(SHEETS[bulanAktif].url,{
   download:true,skipEmptyLines:true,
@@ -134,7 +120,8 @@ function load(){
     const idx=Object.fromEntries(headers.map((v,i)=>[v,i]));
 
     r.data.slice(1).forEach(row=>{
-      const kota=(row[idx[COL_KEYS.kota]||""]||"").toLowerCase();
+      // Kebakaran
+      const kota=(row[idx["Kota"]]||"").toLowerCase();
       if(!kota) return;
       c.total++;
       if(kota.includes("barat")) c.jb++;
@@ -143,24 +130,31 @@ function load(){
       else if(kota.includes("timur")) c.jt++;
       else if(kota.includes("utara")) c.ju++;
 
-      d.rumah+=num(row[idx[COL_KEYS.rumah]||""]);
-      d.kk+=num(row[idx[COL_KEYS.kk]||""]);
-      d.orang+=num(row[idx[COL_KEYS.orang]||""]);
+      // Jumlah Terdampak
+      d.rumah+=num(row[idx["Jumlah Rumah"]]||0);
+      d.kk+=num(row[idx["Jumlah KK"]]||0);
+      d.orang+=num(row[idx["Jumlah Orang"]]||0);
 
-      d.tot+=num(row[idx[COL_KEYS.pengungsianTotal]||""]);
-      d.lk+=num(row[idx[COL_KEYS.lk]||""]);
-      d.pr+=num(row[idx[COL_KEYS.pr]||""]);
+      // Jumlah Pengungsian
+      d.tot+=num(row[idx["Jumlah Total"]]||0);
+      d.lk+=num(row[idx["Jumlah Laki-Laki"]]||0);
+      d.pr+=num(row[idx["Jumlah Perempuan"]]||0);
 
-      d.pasien+=num(row[idx[COL_KEYS.pasien]||""]);
+      // Jumlah Pasien
+      d.pasien+=num(row[idx["Pasien Sakit"]]||0);
 
-      d.balital+=num(row[idx[COL_KEYS.balital]||""]);
-      d.balitap+=num(row[idx[COL_KEYS.balitap]||""]);
-      d.anakl+=num(row[idx[COL_KEYS.anakl]||""]);
-      d.anakp+=num(row[idx[COL_KEYS.anakp]||""]);
-      d.dewasal+=num(row[idx[COL_KEYS.dewasal]||""]);
-      d.dewasap+=num(row[idx[COL_KEYS.dewasap]||""]);
-      d.lansial+=num(row[idx[COL_KEYS.lansial]||""]);
-      d.lansiap+=num(row[idx[COL_KEYS.lansiap]||""]);
+      // Kategori Usia: otomatis ambil semua kolom yang mengandung kategori usia
+      Object.keys(idx).forEach(k=>{
+        const val=num(row[idx[k]]||0);
+        if(k.toLowerCase().includes("balita l")) d.balital+=val;
+        else if(k.toLowerCase().includes("balita p")) d.balitap+=val;
+        else if(k.toLowerCase().includes("anak l")) d.anakl+=val;
+        else if(k.toLowerCase().includes("anak p")) d.anakp+=val;
+        else if(k.toLowerCase().includes("dewasa l")) d.dewasal+=val;
+        else if(k.toLowerCase().includes("dewasa p")) d.dewasap+=val;
+        else if(k.toLowerCase().includes("lansia l")) d.lansial+=val;
+        else if(k.toLowerCase().includes("lansia p")) d.lansiap+=val;
+      });
     });
 
     Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
