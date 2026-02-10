@@ -81,18 +81,13 @@ h2{margin:8px 12px;font-size:16px}
 
 <!-- JUMLAH TERDAMPAK -->
 <h2>Jumlah Terdampak</h2>
-<div class="grid grid-3">
-  <div class="card">Rumah<span id="rumah">0</span><div class="bar orange"></div></div>
-  <div class="card">KK<span id="kk">0</span><div class="bar blue"></div></div>
-  <div class="card">Orang<span id="orang">0</span><div class="bar green"></div></div>
-</div>
-
-<!-- JUMLAH PENGUNGSIAN -->
-<h2>Jumlah Pengungsian</h2>
-<div class="grid grid-3">
-  <div class="card">Total<span id="tot">0</span><div class="bar red"></div></div>
-  <div class="card">Laki-Laki<span id="lk">0</span><div class="bar teal"></div></div>
-  <div class="card">Perempuan<span id="pr">0</span><div class="bar pink"></div></div>
+<div class="grid grid-6">
+  <div class="card">Korban / Meninggal<span id="korban">0</span><div class="bar red"></div></div>
+  <div class="card">Sakit<span id="sakit">0</span><div class="bar orange"></div></div>
+  <div class="card">Terdampak<span id="terdampak">0</span><div class="bar blue"></div></div>
+  <div class="card">Rumah<span id="rumah">0</span><div class="bar green"></div></div>
+  <div class="card">KK<span id="kk">0</span><div class="bar teal"></div></div>
+  <div class="card">Orang<span id="orang">0</span><div class="bar pink"></div></div>
 </div>
 
 <!-- KATEGORI USIA -->
@@ -119,6 +114,7 @@ let bulanAktif=new Date().getMonth();
 let last={};
 
 function safeNum(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
+
 function getBulan(t){
  t=(t||"").toLowerCase();
  if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
@@ -147,17 +143,22 @@ function buatTab(){
   const d=document.createElement("div");
   d.className="tab"+(i===bulanAktif?" active":"");
   d.innerText=b;
-  d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
+  d.onclick=()=>{
+    bulanAktif=i;
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    d.classList.add("active");
+    loadData();
+  };
   tabs.appendChild(d);
  });
 }
 
 function loadData(){
  let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
+ let d={korban:0,sakit:0,terdampak:0,rumah:0,kk:0,orang:0,
         balital:0,balitap:0,anakl:0,anakp:0,
         dewasal:0,dewasap:0,lansial:0,lansiap:0};
- let barisTerdampak=null;
+ let baris=null;
 
  Promise.all(CSVs.map(u=>new Promise(res=>{
   Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
@@ -174,30 +175,31 @@ function loadData(){
     else if(kota.includes("timur")) k.jt++;
     else if(kota.includes("utara")) k.ju++;
 
-    if(!barisTerdampak) barisTerdampak=r;
+    if(!baris) baris=r;
 
-    // Jumlah Pengungsian & Kategori Usia
-    d.tot  += safeNum(r[13]);
-    d.lk   += safeNum(r[14]);
-    d.pr   += safeNum(r[15]);
+    // Kategori Usia
     d.balital += safeNum(r[16]); d.balitap += safeNum(r[17]);
     d.anakl   += safeNum(r[18]); d.anakp += safeNum(r[19]);
     d.dewasal += safeNum(r[20]); d.dewasap += safeNum(r[21]);
     d.lansial += safeNum(r[22]); d.lansiap += safeNum(r[23]);
   });
 
-  // Ambil Terdampak dari kolom Jumlah Rumah / KK / Orang
-  if(barisTerdampak){
-    d.rumah = safeNum(barisTerdampak[10]);
-    d.kk    = safeNum(barisTerdampak[11]);
-    d.orang = safeNum(barisTerdampak[12]);
+  // Ambil jumlah dari kolom: Korban / Sakit / Terdampak / Rumah / KK / Orang
+  if(baris){
+    d.korban     = safeNum(baris[9]);  // Jumlah Korban / Meninggal
+    d.sakit      = safeNum(baris[10]); // Jumlah Sakit
+    d.terdampak  = safeNum(baris[11]); // Jumlah Terdampak
+    d.rumah      = safeNum(baris[12]); // Jumlah Rumah
+    d.kk         = safeNum(baris[13]); // Jumlah KK
+    d.orang      = safeNum(baris[14]); // Jumlah Orang
   }
 
   Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
  });
 }
 
-buatTab();loadData();
+buatTab();
+loadData();
 setInterval(loadData,180000);
 </script>
 
