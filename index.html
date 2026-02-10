@@ -2,205 +2,193 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Kebakaran 2026</title>
-
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 :root{
-  --bg:#0b0e14;
-  --panel:#111726;
-  --text:#eaeaea;
+  --bg:#0b0f14;
+  --card:#141925;
+  --txt:#fff;
 }
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(180deg,#05070b,#0b0f14);
+  color:var(--txt);
 }
-h1{margin:10px;font-size:22px;font-weight:900}
-h2{margin:8px 12px;font-size:16px}
-
-/* TAB */
-.tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
-.tab{
-  padding:6px 14px;
-  background:#222;
+header{
+  padding:15px;
+  font-size:22px;
+  font-weight:bold;
+}
+.months{
+  display:flex;
+  gap:6px;
+  padding:0 15px 10px;
+  flex-wrap:wrap;
+}
+.months button{
+  background:#1a1f2e;
+  border:none;
+  color:#fff;
+  padding:6px 12px;
   border-radius:20px;
   cursor:pointer;
-  font-weight:700;
 }
-.tab.active{background:#ff5252;color:#111}
+.months button.active{
+  background:#ff4d4d;
+}
 
-/* GRID */
-.grid{display:grid;gap:8px;padding:8px}
+.grid{
+  display:grid;
+  gap:12px;
+  padding:0 15px 15px;
+}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
-.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-1{grid-template-columns:1fr}
 
-/* CARD */
 .card{
-  background:var(--panel);
+  background:linear-gradient(180deg,#151b2a,#0f1422);
   border-radius:14px;
-  padding:12px;
+  padding:14px;
   text-align:center;
-  font-weight:800;
   position:relative;
-  overflow:hidden;
 }
-.card span{display:block;font-size:32px;margin-top:4px}
-
-/* BAR */
-.bar{position:absolute;left:0;right:0;bottom:0;height:6px}
-.red{background:#ff5252}
+.card h4{margin:0;font-size:14px;opacity:.9}
+.card span{
+  font-size:30px;
+  font-weight:bold;
+  display:block;
+  margin-top:6px;
+}
+.bar{
+  height:4px;
+  width:100%;
+  position:absolute;
+  bottom:0;left:0;
+  border-radius:0 0 14px 14px;
+}
+.red{background:#ff4d4d}
+.blue{background:#3fa9f5}
+.green{background:#4caf50}
 .orange{background:#ff9800}
-.blue{background:#29b6f6}
-.green{background:#26a69a}
-.purple{background:#7c4dff}
 .teal{background:#00bcd4}
-.pink{background:#ec407a}
-.lime{background:#cddc39}
+.pink{background:#e91e63}
+.purple{background:#9c27b0}
+.yellow{background:#cddc39}
+
+h3{
+  margin:10px 15px 6px;
+  font-weight:600;
+}
 </style>
 </head>
 
 <body>
 
-<h1>🔥 DATA KEBAKARAN 2026</h1>
-<div class="tabs" id="tabs"></div>
+<header>🔥 DATA KEBAKARAN 2026</header>
 
-<!-- REKAP KOTA -->
+<div class="months" id="bulan"></div>
+
+<!-- COUNT KOTA -->
 <div class="grid grid-6">
-  <div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
-  <div class="card">Jakpus<span id="jp">0</span><div class="bar red"></div></div>
-  <div class="card">Jaksel<span id="js">0</span><div class="bar red"></div></div>
-  <div class="card">Jaktim<span id="jt">0</span><div class="bar red"></div></div>
-  <div class="card">Jakut<span id="ju">0</span><div class="bar red"></div></div>
-  <div class="card">Total<span id="total">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Jakbar</h4><span id="jb">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Jakpus</h4><span id="jp">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Jaksel</h4><span id="js">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Jaktim</h4><span id="jt">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Jakut</h4><span id="ju">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Total</h4><span id="total">0</span><div class="bar red"></div></div>
 </div>
 
-<!-- JUMLAH TERDAMPAK -->
-<h2>Jumlah Terdampak</h2>
-<div class="grid grid-6">
-  <div class="card">Korban / Meninggal<span id="korban">0</span><div class="bar red"></div></div>
-  <div class="card">Sakit<span id="sakit">0</span><div class="bar orange"></div></div>
-  <div class="card">Terdampak<span id="terdampak">0</span><div class="bar blue"></div></div>
-  <div class="card">Rumah<span id="rumah">0</span><div class="bar green"></div></div>
-  <div class="card">KK<span id="kk">0</span><div class="bar teal"></div></div>
-  <div class="card">Orang<span id="orang">0</span><div class="bar pink"></div></div>
+<h3>Jumlah Terdampak</h3>
+<div class="grid grid-3">
+  <div class="card"><h4>Rumah</h4><span id="rumah">0</span><div class="bar orange"></div></div>
+  <div class="card"><h4>KK</h4><span id="kk">0</span><div class="bar blue"></div></div>
+  <div class="card"><h4>Orang</h4><span id="orang">0</span><div class="bar green"></div></div>
 </div>
 
-<!-- KATEGORI USIA -->
-<h2>Jumlah Berdasarkan Kategori Usia</h2>
-<div class="grid grid-4">
-  <div class="card">Balita L<span id="balital">0</span><div class="bar lime"></div></div>
-  <div class="card">Balita P<span id="balitap">0</span><div class="bar lime"></div></div>
-  <div class="card">Anak L<span id="anakl">0</span><div class="bar teal"></div></div>
-  <div class="card">Anak P<span id="anakp">0</span><div class="bar teal"></div></div>
-  <div class="card">Dewasa L<span id="dewasal">0</span><div class="bar blue"></div></div>
-  <div class="card">Dewasa P<span id="dewasap">0</span><div class="bar blue"></div></div>
-  <div class="card">Lansia L<span id="lansial">0</span><div class="bar purple"></div></div>
-  <div class="card">Lansia P<span id="lansiap">0</span><div class="bar purple"></div></div>
+<h3>Korban / Meninggal</h3>
+<div class="grid grid-1">
+  <div class="card"><h4>Total</h4><span id="korban">0</span><div class="bar red"></div></div>
+</div>
+
+<h3>Jumlah Pengungsian</h3>
+<div class="grid grid-3">
+  <div class="card"><h4>Total</h4><span id="pengTotal">0</span><div class="bar red"></div></div>
+  <div class="card"><h4>Laki-laki</h4><span id="pengL">0</span><div class="bar teal"></div></div>
+  <div class="card"><h4>Perempuan</h4><span id="pengP">0</span><div class="bar pink"></div></div>
+</div>
+
+<h3>Jumlah Pasien</h3>
+<div class="grid grid-1">
+  <div class="card"><h4>Total</h4><span id="pasien">0</span><div class="bar orange"></div></div>
 </div>
 
 <script>
-const CSVs=[
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
- "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
-];
+const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pubhtml";
 
-const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-let bulanAktif=new Date().getMonth();
-let last={};
+const bulanNama=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+let bulanAktif=1;
 
-function safeNum(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
-
-function getBulan(t){
- t=(t||"").toLowerCase();
- if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
- if(t.includes("apr"))return 3;if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
- if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;if(t.includes("sep"))return 8;
- if(t.includes("okt"))return 9;if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
- const p=t.match(/(\d{1,2})[\/\-](\d{1,2})/);
- return p?parseInt(p[2])-1:-1;
-}
-
-function animate(id,val){
- const el=document.getElementById(id);
- const s=last[id]||0,d=val-s;let t0=null;
- function step(ts){
-  if(!t0)t0=ts;
-  const p=Math.min((ts-t0)/600,1);
-  el.innerText=Math.floor(s+d*p);
-  if(p<1)requestAnimationFrame(step);
- }
- last[id]=val;requestAnimationFrame(step);
-}
-
-function buatTab(){
- tabs.innerHTML="";
- bulan.forEach((b,i)=>{
-  const d=document.createElement("div");
-  d.className="tab"+(i===bulanAktif?" active":"");
-  d.innerText=b;
-  d.onclick=()=>{
-    bulanAktif=i;
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    d.classList.add("active");
+const bulanDiv=document.getElementById("bulan");
+bulanNama.forEach((b,i)=>{
+  const btn=document.createElement("button");
+  btn.textContent=b;
+  if(i+1===bulanAktif) btn.classList.add("active");
+  btn.onclick=()=>{
+    document.querySelectorAll(".months button").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    bulanAktif=i+1;
     loadData();
   };
-  tabs.appendChild(d);
- });
-}
+  bulanDiv.appendChild(btn);
+});
+
+function num(v){v=parseInt(v);return isNaN(v)?0:v}
 
 function loadData(){
  let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={korban:0,sakit:0,terdampak:0,rumah:0,kk:0,orang:0,
-        balital:0,balitap:0,anakl:0,anakp:0,
-        dewasal:0,dewasap:0,lansial:0,lansiap:0};
- let baris=null;
+ let d={rumah:0,kk:0,orang:0,korban:0,pengTotal:0,pengL:0,pengP:0,pasien:0};
 
- Promise.all(CSVs.map(u=>new Promise(res=>{
-  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
- }))).then(all=>{
-  all.flat().slice(1).forEach(r=>{
-    if(!(r[3]||"").toLowerCase().includes("kebakaran")) return;
-    if(getBulan(r[1])!==bulanAktif) return;
+ fetch(SHEET_URL).then(r=>r.text()).then(t=>{
+  const doc=new DOMParser().parseFromString(t,"text/html");
+  const rows=[...doc.querySelectorAll("table tr")].slice(1);
 
-    const kota=(r[7]||"").toLowerCase();
+  rows.forEach(r=>{
+    const c=[...r.children].map(td=>td.innerText.trim());
+    if(!(c[3]||"").toLowerCase().includes("kebakaran")) return;
+
+    const bln=new Date(c[1]).getMonth()+1;
+    if(bln!==bulanAktif) return;
+
+    const kota=(c[7]||"").toLowerCase();
     k.total++;
-    if(kota.includes("barat")) k.jb++;
-    else if(kota.includes("pusat")) k.jp++;
-    else if(kota.includes("selatan")) k.js++;
-    else if(kota.includes("timur")) k.jt++;
-    else if(kota.includes("utara")) k.ju++;
+    if(kota.includes("barat"))k.jb++;
+    else if(kota.includes("pusat"))k.jp++;
+    else if(kota.includes("selatan"))k.js++;
+    else if(kota.includes("timur"))k.jt++;
+    else if(kota.includes("utara"))k.ju++;
 
-    if(!baris) baris=r;
-
-    // Kategori Usia
-    d.balital += safeNum(r[16]); d.balitap += safeNum(r[17]);
-    d.anakl   += safeNum(r[18]); d.anakp += safeNum(r[19]);
-    d.dewasal += safeNum(r[20]); d.dewasap += safeNum(r[21]);
-    d.lansial += safeNum(r[22]); d.lansiap += safeNum(r[23]);
+    d.rumah+=num(c[12]);
+    d.kk+=num(c[13]);
+    d.orang+=num(c[14]);
+    d.korban+=num(c[9]);
+    d.pengTotal+=num(c[15]);
+    d.pengL+=num(c[16]);
+    d.pengP+=num(c[17]);
+    d.pasien+=num(c[11]);
   });
 
-  // Ambil jumlah dari kolom: Korban / Sakit / Terdampak / Rumah / KK / Orang
-  if(baris){
-    d.korban     = safeNum(baris[9]);  // Jumlah Korban / Meninggal
-    d.sakit      = safeNum(baris[10]); // Jumlah Sakit
-    d.terdampak  = safeNum(baris[11]); // Jumlah Terdampak
-    d.rumah      = safeNum(baris[12]); // Jumlah Rumah
-    d.kk         = safeNum(baris[13]); // Jumlah KK
-    d.orang      = safeNum(baris[14]); // Jumlah Orang
-  }
-
-  Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
+  Object.entries({...k,...d}).forEach(([i,v])=>{
+    const el=document.getElementById(i);
+    if(el) el.textContent=v;
+  });
  });
 }
 
-buatTab();
 loadData();
-setInterval(loadData,180000);
 </script>
 
 </body>
