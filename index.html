@@ -4,43 +4,82 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Kebakaran 2026</title>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
-:root{--bg:#0b0e14;--panel:#111726;--text:#eaeaea}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+:root{
+  --bg:#0b0e14;
+  --panel:#111726;
+  --text:#eaeaea;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Segoe UI,Arial,sans-serif;
+}
 h1{margin:10px;font-size:22px;font-weight:900}
-h2{margin:8px 12px;font-size:16px;opacity:.9}
+h2{margin:8px 12px;font-size:16px}
+
+/* TAB */
 .tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
-.tab{padding:6px 14px;background:#222;border-radius:20px;cursor:pointer;font-weight:700}
+.tab{
+  padding:6px 14px;
+  background:#222;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:700;
+}
 .tab.active{background:#ff5252;color:#111}
+
+/* GRID */
 .grid{display:grid;gap:8px;padding:8px}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
 .grid-4{grid-template-columns:repeat(4,1fr)}
-.card{background:var(--panel);border-radius:14px;padding:10px;text-align:center;font-weight:800;position:relative}
-.card span{display:block;font-size:30px;margin-top:4px}
+
+/* CARD */
+.card{
+  background:var(--panel);
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+  font-weight:800;
+  position:relative;
+  overflow:hidden;
+}
+.card span{display:block;font-size:32px;margin-top:4px}
+
+/* BAR */
 .bar{position:absolute;left:0;right:0;bottom:0;height:6px}
-.red{background:#ff5252}.orange{background:#ff9800}
-.blue{background:#29b6f6}.green{background:#26a69a}
-.purple{background:#7c4dff}.teal{background:#00bcd4}
-.pink{background:#ec407a}.lime{background:#cddc39}
+.red{background:#ff5252}
+.orange{background:#ff9800}
+.blue{background:#29b6f6}
+.green{background:#26a69a}
+.purple{background:#7c4dff}
+.teal{background:#00bcd4}
+.pink{background:#ec407a}
+.lime{background:#cddc39}
 </style>
 </head>
+
 <body>
 
 <h1>🔥 DATA KEBAKARAN 2026</h1>
 <div class="tabs" id="tabs"></div>
 
-<h2>DATA KEJADIAN KEBAKARAN 2026</h2>
+<!-- REKAP KOTA -->
 <div class="grid grid-6">
   <div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
-  <div class="card">Jakpus<span id="jp">0</span><div class="bar orange"></div></div>
-  <div class="card">Jaksel<span id="js">0</span><div class="bar purple"></div></div>
-  <div class="card">Jaktim<span id="jt">0</span><div class="bar blue"></div></div>
-  <div class="card">Jakut<span id="ju">0</span><div class="bar green"></div></div>
+  <div class="card">Jakpus<span id="jp">0</span><div class="bar red"></div></div>
+  <div class="card">Jaksel<span id="js">0</span><div class="bar red"></div></div>
+  <div class="card">Jaktim<span id="jt">0</span><div class="bar red"></div></div>
+  <div class="card">Jakut<span id="ju">0</span><div class="bar red"></div></div>
   <div class="card">Total<span id="total">0</span><div class="bar red"></div></div>
 </div>
 
+<!-- JUMLAH TERDAMPAK -->
 <h2>Jumlah Terdampak</h2>
 <div class="grid grid-3">
   <div class="card">Rumah<span id="rumah">0</span><div class="bar orange"></div></div>
@@ -48,18 +87,15 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
   <div class="card">Orang<span id="orang">0</span><div class="bar green"></div></div>
 </div>
 
+<!-- JUMLAH PENGUNGSIAN -->
 <h2>Jumlah Pengungsian</h2>
 <div class="grid grid-3">
   <div class="card">Total<span id="tot">0</span><div class="bar red"></div></div>
-  <div class="card">Laki-laki<span id="lk">0</span><div class="bar teal"></div></div>
+  <div class="card">Laki-Laki<span id="lk">0</span><div class="bar teal"></div></div>
   <div class="card">Perempuan<span id="pr">0</span><div class="bar pink"></div></div>
 </div>
 
-<h2>Jumlah Pasien</h2>
-<div class="grid grid-3">
-  <div class="card">Pasien Sakit<span id="pasien">0</span><div class="bar orange"></div></div>
-</div>
-
+<!-- KATEGORI USIA -->
 <h2>Jumlah Berdasarkan Kategori Usia</h2>
 <div class="grid grid-4">
   <div class="card">Balita L<span id="balital">0</span><div class="bar lime"></div></div>
@@ -73,98 +109,88 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 </div>
 
 <script>
-const SHEETS=[
-  {label:"Jan", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1241106342&single=true&output=csv"},
-  {label:"Feb", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1284284298&single=true&output=csv"}
+const CSVs=[
+ "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
+ "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
 ];
 
-let bulanAktif=0;
+const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+let bulanAktif=new Date().getMonth();
 let last={};
-const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
 
+function num(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
+
+/* PARSING BULAN AMAN */
+function getBulan(t){
+ t=(t||"").toLowerCase();
+ if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
+ if(t.includes("apr"))return 3;if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
+ if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;if(t.includes("sep"))return 8;
+ if(t.includes("okt"))return 9;if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
+ const p=t.match(/(\d{1,2})[\/\-](\d{1,2})/);
+ return p?parseInt(p[2])-1:-1;
+}
+
+/* ANIMASI */
 function animate(id,val){
- const e=document.getElementById(id),s=last[id]||0,d=val-s;
- let t0=null;
- function a(ts){
+ const el=document.getElementById(id);
+ const s=last[id]||0,d=val-s;let t0=null;
+ function step(ts){
   if(!t0)t0=ts;
-  const p=Math.min((ts-t0)/500,1);
-  e.innerText=Math.floor(s+d*p);
-  if(p<1)requestAnimationFrame(a);
+  const p=Math.min((ts-t0)/600,1);
+  el.innerText=Math.floor(s+d*p);
+  if(p<1)requestAnimationFrame(step);
  }
- last[id]=val;requestAnimationFrame(a);
+ last[id]=val;requestAnimationFrame(step);
 }
 
 function buatTab(){
- const tabs=document.getElementById("tabs");
  tabs.innerHTML="";
- SHEETS.forEach((b,i)=>{
-  const t=document.createElement("div");
-  t.className="tab"+(i===bulanAktif?" active":"");
-  t.innerText=b.label;
-  t.onclick=()=>{bulanAktif=i;buatTab();load()};
-  tabs.appendChild(t);
+ bulan.forEach((b,i)=>{
+  const d=document.createElement("div");
+  d.className="tab"+(i===bulanAktif?" active":"");
+  d.innerText=b;
+  d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
+  tabs.appendChild(d);
  });
 }
 
-// Fungsi load fleksibel
-function load(){
- let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
-        balital:0,balitap:0,anakl:0,anakp:0,dewasal:0,dewasap:0,lansial:0,lansiap:0};
+function loadData(){
+ let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
+ let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
+        balital:0,balitap:0,anakl:0,anakp:0,
+        dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
- Papa.parse(SHEETS[bulanAktif].url,{
-  download:true,skipEmptyLines:true,
-  complete:r=>{
-    if(!r.data || r.data.length<2) return;
-    const headers=r.data[0].map(h=>h.trim());
-    const idx=Object.fromEntries(headers.map((v,i)=>[v,i]));
+ Promise.all(CSVs.map(u=>new Promise(res=>{
+  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
+ }))).then(all=>{
+  all.flat().slice(1).forEach(r=>{
+    if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
+    if(getBulan(r[1])!==bulanAktif)return;
 
-    r.data.slice(1).forEach(row=>{
-      // Kebakaran
-      const kota=(row[idx["Kota"]]||"").toLowerCase();
-      if(!kota) return;
-      c.total++;
-      if(kota.includes("barat")) c.jb++;
-      else if(kota.includes("pusat")) c.jp++;
-      else if(kota.includes("selatan")) c.js++;
-      else if(kota.includes("timur")) c.jt++;
-      else if(kota.includes("utara")) c.ju++;
+    const kota=(r[7]||"").toLowerCase();
+    k.total++;
+    if(kota.includes("barat"))k.jb++;
+    else if(kota.includes("pusat"))k.jp++;
+    else if(kota.includes("selatan"))k.js++;
+    else if(kota.includes("timur"))k.jt++;
+    else if(kota.includes("utara"))k.ju++;
 
-      // Jumlah Terdampak
-      d.rumah+=num(row[idx["Jumlah Rumah"]]||0);
-      d.kk+=num(row[idx["Jumlah KK"]]||0);
-      d.orang+=num(row[idx["Jumlah Orang"]]||0);
+    d.rumah+=num(r[10]); d.kk+=num(r[11]); d.orang+=num(r[12]);
+    d.tot+=num(r[13]); d.lk+=num(r[14]); d.pr+=num(r[15]);
+    d.balital+=num(r[16]); d.balitap+=num(r[17]);
+    d.anakl+=num(r[18]); d.anakp+=num(r[19]);
+    d.dewasal+=num(r[20]); d.dewasap+=num(r[21]);
+    d.lansial+=num(r[22]); d.lansiap+=num(r[23]);
+  });
 
-      // Jumlah Pengungsian
-      d.tot+=num(row[idx["Jumlah Total"]]||0);
-      d.lk+=num(row[idx["Jumlah Laki-Laki"]]||0);
-      d.pr+=num(row[idx["Jumlah Perempuan"]]||0);
-
-      // Jumlah Pasien
-      d.pasien+=num(row[idx["Pasien Sakit"]]||0);
-
-      // Kategori Usia: otomatis ambil semua kolom yang mengandung kategori usia
-      Object.keys(idx).forEach(k=>{
-        const val=num(row[idx[k]]||0);
-        if(k.toLowerCase().includes("balita l")) d.balital+=val;
-        else if(k.toLowerCase().includes("balita p")) d.balitap+=val;
-        else if(k.toLowerCase().includes("anak l")) d.anakl+=val;
-        else if(k.toLowerCase().includes("anak p")) d.anakp+=val;
-        else if(k.toLowerCase().includes("dewasa l")) d.dewasal+=val;
-        else if(k.toLowerCase().includes("dewasa p")) d.dewasap+=val;
-        else if(k.toLowerCase().includes("lansia l")) d.lansial+=val;
-        else if(k.toLowerCase().includes("lansia p")) d.lansiap+=val;
-      });
-    });
-
-    Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
-  }
+  Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
  });
 }
 
-buatTab();
-load();
-setInterval(load,180000);
+buatTab();loadData();
+setInterval(loadData,180000);
 </script>
+
 </body>
 </html>
