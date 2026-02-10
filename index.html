@@ -4,24 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Kebakaran 2026</title>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
 <style>
 :root{--bg:#0b0e14;--panel:#111726;--text:#eaeaea}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
 h1{margin:10px;font-size:22px;font-weight:900}
 h2{margin:8px 12px;font-size:16px;opacity:.9}
-
 .tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
 .tab{padding:6px 14px;background:#222;border-radius:20px;cursor:pointer;font-weight:700}
 .tab.active{background:#ff5252;color:#111}
-
 .grid{display:grid;gap:8px;padding:8px}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
 .grid-4{grid-template-columns:repeat(4,1fr)}
-
 .card{background:var(--panel);border-radius:14px;padding:10px;text-align:center;font-weight:800;position:relative}
 .card span{display:block;font-size:30px;margin-top:4px}
 .bar{position:absolute;left:0;right:0;bottom:0;height:6px}
@@ -31,7 +26,6 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 .pink{background:#ec407a}.lime{background:#cddc39}
 </style>
 </head>
-
 <body>
 
 <h1>🔥 DATA KEBAKARAN 2026</h1>
@@ -79,14 +73,15 @@ h2{margin:8px 12px;font-size:16px;opacity:.9}
 </div>
 
 <script>
-const SHEETS={
-  0:"1241106342", // Januari
-  1:"1284284298"  // Februari
-};
+const SPREADSHEET_BASE="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=";
 
-const BASE="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=";
+// Daftar sheet (gid) dan label tab otomatis
+const SHEETS=[ 
+  {gid:"1241106342", label:"Jan"}, 
+  {gid:"1284284298", label:"Feb"}
+];
 
-const COL={
+const COL_KEYS={
  jenis:"Jenis Kejadian", kota:"Kota",
  rumah:"Jumlah Rumah", kk:"Jumlah KK", orang:"Jumlah Terdampak",
  pengungsi:"Jumlah Pengungsian", lk:"Laki-Laki", pr:"Perempuan",
@@ -97,12 +92,11 @@ const COL={
  lansiaL:"Lansia L", lansiaP:"Lansia P"
 };
 
-const bulan=["Jan","Feb"];
-let bulanAktif=0,last={};
-
+let bulanAktif=0;
+let last={};
 const num=v=>parseInt((v||"0").toString().replace(/\D/g,""))||0;
-const mapHeader=h=>Object.fromEntries(h.map((v,i)=>[v.trim(),i]));
 
+// Animasi angka
 function animate(id,val){
  const e=document.getElementById(id),s=last[id]||0,d=val-s;
  let t0=null;
@@ -115,61 +109,73 @@ function animate(id,val){
  last[id]=val;requestAnimationFrame(a);
 }
 
+// Buat tab
 function buatTab(){
+ const tabs=document.getElementById("tabs");
  tabs.innerHTML="";
- bulan.forEach((b,i)=>{
+ SHEETS.forEach((b,i)=>{
   const t=document.createElement("div");
   t.className="tab"+(i===bulanAktif?" active":"");
-  t.innerText=b;
+  t.innerText=b.label;
   t.onclick=()=>{bulanAktif=i;buatTab();load()};
   tabs.appendChild(t);
  });
 }
 
+// Load data
 function load(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
  let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
         balital:0,balitap:0,anakl:0,anakp:0,
         dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
- Papa.parse(BASE+SHEETS[bulanAktif],{
+ Papa.parse(SPREADSHEET_BASE+SHEETS[bulanAktif].gid,{
   download:true,skipEmptyLines:true,
   complete:r=>{
-    const idx=mapHeader(r.data[0]);
+    if(!r.data || r.data.length<2) return;
+
+    // Mapping header otomatis (trim & lowercase)
+    const headers=r.data[0].map(h=>h.trim());
+    const idx=Object.fromEntries(headers.map((v,i)=>[v.toLowerCase(),i]));
+
     r.data.slice(1).forEach(row=>{
-      if(!row[idx[COL.jenis]]?.toLowerCase().includes("kebakaran"))return;
+      const jenis=(row[idx[COL_KEYS.jenis.toLowerCase()]||""]||"").toLowerCase();
+      if(!jenis.includes("kebakaran")) return;
 
-      const kota=(row[idx[COL.kota]]||"").toLowerCase();
+      const kota=(row[idx[COL_KEYS.kota.toLowerCase()]||""]||"").toLowerCase();
       c.total++;
-      if(kota.includes("barat"))c.jb++;
-      else if(kota.includes("pusat"))c.jp++;
-      else if(kota.includes("selatan"))c.js++;
-      else if(kota.includes("timur"))c.jt++;
-      else if(kota.includes("utara"))c.ju++;
+      if(kota.includes("barat")) c.jb++;
+      else if(kota.includes("pusat")) c.jp++;
+      else if(kota.includes("selatan")) c.js++;
+      else if(kota.includes("timur")) c.jt++;
+      else if(kota.includes("utara")) c.ju++;
 
-      d.rumah+=num(row[idx[COL.rumah]]);
-      d.kk+=num(row[idx[COL.kk]]);
-      d.orang+=num(row[idx[COL.orang]]);
-      d.tot+=num(row[idx[COL.pengungsi]]);
-      d.lk+=num(row[idx[COL.lk]]);
-      d.pr+=num(row[idx[COL.pr]]);
-      d.pasien+=num(row[idx[COL.sakit]]);
+      d.rumah+=num(row[idx[COL_KEYS.rumah.toLowerCase()]||""]);
+      d.kk+=num(row[idx[COL_KEYS.kk.toLowerCase()]||""]);
+      d.orang+=num(row[idx[COL_KEYS.orang.toLowerCase()]||""]);
+      d.tot+=num(row[idx[COL_KEYS.pengungsi.toLowerCase()]||""]);
+      d.lk+=num(row[idx[COL_KEYS.lk.toLowerCase()]||""]);
+      d.pr+=num(row[idx[COL_KEYS.pr.toLowerCase()]||""]);
+      d.pasien+=num(row[idx[COL_KEYS.sakit.toLowerCase()]||""]);
 
-      d.balital+=num(row[idx[COL.balitaL]]);
-      d.balitap+=num(row[idx[COL.balitaP]]);
-      d.anakl+=num(row[idx[COL.anakL]]);
-      d.anakp+=num(row[idx[COL.anakP]]);
-      d.dewasal+=num(row[idx[COL.dewasaL]]);
-      d.dewasap+=num(row[idx[COL.dewasaP]]);
-      d.lansial+=num(row[idx[COL.lansiaL]]);
-      d.lansiap+=num(row[idx[COL.lansiaP]]);
+      d.balital+=num(row[idx[COL_KEYS.balitaL.toLowerCase()]||""]);
+      d.balitap+=num(row[idx[COL_KEYS.balitaP.toLowerCase()]||""]);
+      d.anakl+=num(row[idx[COL_KEYS.anakL.toLowerCase()]||""]);
+      d.anakp+=num(row[idx[COL_KEYS.anakP.toLowerCase()]||""]);
+      d.dewasal+=num(row[idx[COL_KEYS.dewasaL.toLowerCase()]||""]);
+      d.dewasap+=num(row[idx[COL_KEYS.dewasaP.toLowerCase()]||""]);
+      d.lansial+=num(row[idx[COL_KEYS.lansiaL.toLowerCase()]||""]);
+      d.lansiap+=num(row[idx[COL_KEYS.lansiaP.toLowerCase()]||""]);
     });
+
     Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
   }
  });
 }
 
-buatTab();load();setInterval(load,180000);
+buatTab();
+load();
+setInterval(load,180000);
 </script>
 
 </body>
