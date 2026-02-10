@@ -22,7 +22,15 @@ body{
 h1{
   margin:10px;
   font-size:22px;
+  font-weight:900;
 }
+h2{
+  margin:8px 12px;
+  font-size:16px;
+  opacity:.9;
+}
+
+/* TAB BULAN */
 .tabs{
   display:flex;
   gap:6px;
@@ -30,9 +38,9 @@ h1{
   flex-wrap:wrap;
 }
 .tab{
-  padding:6px 12px;
+  padding:6px 14px;
   background:#222;
-  border-radius:10px;
+  border-radius:20px;
   cursor:pointer;
   font-weight:700;
 }
@@ -41,30 +49,46 @@ h1{
   color:#111;
 }
 
-.topbar{
+/* GRID */
+.grid{
   display:grid;
-  grid-template-columns:repeat(6,1fr);
-  gap:6px;
-  padding:6px;
+  gap:8px;
+  padding:8px;
 }
-.fire{
+.grid-6{grid-template-columns:repeat(6,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+
+/* CARD */
+.card{
   background:var(--panel);
   border-radius:14px;
-  padding:12px;
+  padding:10px;
   text-align:center;
-  font-weight:900;
+  font-weight:800;
+  position:relative;
+  overflow:hidden;
 }
-.fire span{
+.card span{
   display:block;
-  font-size:28px;
+  font-size:30px;
+  margin-top:4px;
 }
 
-.bottom{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  padding:6px;
+/* BAR WARNA */
+.bar{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:6px;
 }
+.red{background:#ff5252}
+.orange{background:#ff9800}
+.blue{background:#29b6f6}
+.green{background:#26a69a}
+.purple{background:#7c4dff}
+.teal{background:#00bcd4}
+.pink{background:#ec407a}
+.lime{background:#cddc39}
 </style>
 </head>
 
@@ -76,24 +100,39 @@ h1{
 <div class="tabs" id="tabs"></div>
 
 <!-- REKAP KOTA -->
-<div class="topbar">
-  <div class="fire">JAKBAR<span id="jb">0</span></div>
-  <div class="fire">JAKPUS<span id="jp">0</span></div>
-  <div class="fire">JAKSEL<span id="js">0</span></div>
-  <div class="fire">JAKTIM<span id="jt">0</span></div>
-  <div class="fire">JAKUT<span id="ju">0</span></div>
-  <div class="fire">TOTAL<span id="total">0</span></div>
+<div class="grid grid-6">
+  <div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
+  <div class="card">Jakpus<span id="jp">0</span><div class="bar orange"></div></div>
+  <div class="card">Jaksel<span id="js">0</span><div class="bar purple"></div></div>
+  <div class="card">Jaktim<span id="jt">0</span><div class="bar blue"></div></div>
+  <div class="card">Jakut<span id="ju">0</span><div class="bar green"></div></div>
+  <div class="card">Total<span id="total">0</span><div class="bar red"></div></div>
 </div>
 
-<!-- DAMPAK -->
-<div class="bottom">
-  <div class="fire">Rumah<span id="rumah">0</span></div>
-  <div class="fire">KK<span id="kk">0</span></div>
-  <div class="fire">Orang<span id="orang">0</span></div>
-  <div class="fire">Laki-Laki<span id="lk">0</span></div>
-  <div class="fire">Perempuan<span id="pr">0</span></div>
-  <div class="fire">Balita<span id="balita">0</span></div>
-  <div class="fire">Total<span id="totkorban">0</span></div>
+<h2>Jumlah Terdampak</h2>
+<div class="grid grid-3">
+  <div class="card">Rumah<span id="rumah">0</span><div class="bar orange"></div></div>
+  <div class="card">KK<span id="kk">0</span><div class="bar blue"></div></div>
+  <div class="card">Orang<span id="orang">0</span><div class="bar green"></div></div>
+</div>
+
+<h2>Jumlah Pengungsian</h2>
+<div class="grid grid-3">
+  <div class="card">Total<span id="tot">0</span><div class="bar red"></div></div>
+  <div class="card">Laki-Laki<span id="lk">0</span><div class="bar teal"></div></div>
+  <div class="card">Perempuan<span id="pr">0</span><div class="bar pink"></div></div>
+</div>
+
+<h2>Jumlah Berdasarkan Kategori Usia</h2>
+<div class="grid grid-4">
+  <div class="card">Balita L<span id="balital">0</span><div class="bar lime"></div></div>
+  <div class="card">Balita P<span id="balitap">0</span><div class="bar lime"></div></div>
+  <div class="card">Anak L<span id="anakl">0</span><div class="bar teal"></div></div>
+  <div class="card">Anak P<span id="anakp">0</span><div class="bar teal"></div></div>
+  <div class="card">Dewasa L<span id="dewasal">0</span><div class="bar blue"></div></div>
+  <div class="card">Dewasa P<span id="dewasap">0</span><div class="bar blue"></div></div>
+  <div class="card">Lansia L<span id="lansial">0</span><div class="bar purple"></div></div>
+  <div class="card">Lansia P<span id="lansiap">0</span><div class="bar purple"></div></div>
 </div>
 
 <script>
@@ -102,69 +141,77 @@ const CSVs=[
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
 ];
 
-const bulanNama=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 let bulanAktif=new Date().getMonth();
+let lastValue={};
 
 function num(v){
-  return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0;
+ return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0;
+}
+
+function animate(id,val){
+ const el=document.getElementById(id);
+ const start=lastValue[id]||0;
+ const diff=val-start;
+ const dur=600;
+ let t0=null;
+ function step(ts){
+  if(!t0)t0=ts;
+  const p=Math.min((ts-t0)/dur,1);
+  el.innerText=Math.floor(start+diff*p);
+  if(p<1)requestAnimationFrame(step);
+ }
+ lastValue[id]=val;
+ requestAnimationFrame(step);
 }
 
 function buatTab(){
-  tabs.innerHTML="";
-  bulanNama.forEach((b,i)=>{
-    const d=document.createElement("div");
-    d.className="tab"+(i===bulanAktif?" active":"");
-    d.innerText=b;
-    d.onclick=()=>{
-      bulanAktif=i;
-      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-      d.classList.add("active");
-      loadData();
-    };
-    tabs.appendChild(d);
-  });
+ tabs.innerHTML="";
+ bulan.forEach((b,i)=>{
+  const d=document.createElement("div");
+  d.className="tab"+(i===bulanAktif?" active":"");
+  d.innerText=b;
+  d.onclick=()=>{
+    bulanAktif=i;
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    d.classList.add("active");
+    loadData();
+  };
+  tabs.appendChild(d);
+ });
 }
 
 function loadData(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,lk:0,pr:0,balita:0,tot:0};
+ let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
+        balital:0,balitap:0,anakl:0,anakp:0,
+        dewasal:0,dewasap:0,lansial:0,lansiap:0};
 
  Promise.all(CSVs.map(u=>new Promise(res=>{
   Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
  }))).then(all=>{
   all.flat().slice(1).forEach(r=>{
     if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
+    const t=new Date(r[1]);
+    if(t.getMonth()!==bulanAktif)return;
 
-    const tgl=new Date(r[1]);
-    if(tgl.getMonth()!==bulanAktif)return;
-
-    const kota=(r[7]||"").toLowerCase();
+    const k=(r[7]||"").toLowerCase();
     c.total++;
-    if(kota.includes("barat"))c.jb++;
-    else if(kota.includes("pusat"))c.jp++;
-    else if(kota.includes("selatan"))c.js++;
-    else if(kota.includes("timur"))c.jt++;
-    else if(kota.includes("utara"))c.ju++;
+    if(k.includes("barat"))c.jb++;
+    else if(k.includes("pusat"))c.jp++;
+    else if(k.includes("selatan"))c.js++;
+    else if(k.includes("timur"))c.jt++;
+    else if(k.includes("utara"))c.ju++;
 
-    d.rumah+=num(r[10]);
-    d.kk+=num(r[11]);
-    d.orang+=num(r[12]);
-    d.tot+=num(r[13]);
-    d.lk+=num(r[14]);
-    d.pr+=num(r[15]);
-    d.balita+=num(r[16])+num(r[17]);
+    d.rumah+=num(r[10]); d.kk+=num(r[11]); d.orang+=num(r[12]);
+    d.tot+=num(r[13]); d.lk+=num(r[14]); d.pr+=num(r[15]);
+    d.balital+=num(r[16]); d.balitap+=num(r[17]);
+    d.anakl+=num(r[18]); d.anakp+=num(r[19]);
+    d.dewasal+=num(r[20]); d.dewasap+=num(r[21]);
+    d.lansial+=num(r[22]); d.lansiap+=num(r[23]);
   });
 
-  jb.innerText=c.jb; jp.innerText=c.jp; js.innerText=c.js;
-  jt.innerText=c.jt; ju.innerText=c.ju; total.innerText=c.total;
-
-  rumah.innerText=d.rumah;
-  kk.innerText=d.kk;
-  orang.innerText=d.orang;
-  lk.innerText=d.lk;
-  pr.innerText=d.pr;
-  balita.innerText=d.balita;
-  totkorban.innerText=d.tot;
+  Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
  });
 }
 
