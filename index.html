@@ -4,34 +4,29 @@
 <meta charset="UTF-8">
 <title>Dashboard Kebakaran</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#0f1115;color:#fff}
 header{padding:15px;font-size:20px;font-weight:bold;text-align:center}
 .tabs{display:flex;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
-.tabs button{
-  margin:3px;padding:6px 12px;border:0;border-radius:20px;
-  background:#222;color:#ccc;cursor:pointer
-}
+.tabs button{margin:3px;padding:6px 12px;border:0;border-radius:20px;background:#222;color:#ccc;cursor:pointer}
 .tabs button.active{background:#ff9800;color:#000}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;padding:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px;padding:15px}
 
-.card{
-  background:#1c1f26;border-radius:14px;padding:15px;
-  box-shadow:0 0 10px rgba(0,0,0,.4)
-}
+.card{background:#1c1f26;border-radius:14px;padding:15px;box-shadow:0 0 10px rgba(0,0,0,.4)}
 .card h3{margin:0 0 10px;font-size:15px;color:#ffb74d}
 
 .row{display:flex;justify-content:space-between;margin:6px 0}
-.bar{
-  height:6px;border-radius:4px;background:linear-gradient(90deg,#ff9800,#ff5722);
-  margin-top:6px;transition:width .6s
-}
 .value{font-weight:bold;font-size:20px}
 .small{font-size:13px;color:#aaa}
+
+.bar{height:6px;border-radius:4px;background:linear-gradient(90deg,#ff9800,#ff5722);margin-top:6px;transition:width .6s}
+
+.kota-row{margin:6px 0}
+.kota-name{font-size:13px;color:#ccc}
+.kota-bar{height:8px;border-radius:6px;background:linear-gradient(90deg,#03a9f4,#00e5ff);transition:width .6s}
 </style>
 </head>
 
@@ -44,118 +39,136 @@ header{padding:15px;font-size:20px;font-weight:bold;text-align:center}
 <div class="grid">
 
 <div class="card">
-  <h3>Jumlah Terdampak</h3>
-  <div class="row"><span>Rumah</span><span id="rumah" class="value">0</span></div>
-  <div class="row"><span>KK</span><span id="kk" class="value">0</span></div>
-  <div class="row"><span>Orang</span><span id="orang" class="value">0</span></div>
-  <div class="bar" id="barTerdampak"></div>
+<h3>Jumlah Terdampak</h3>
+<div class="row"><span>Rumah</span><span id="rumah" class="value">0</span></div>
+<div class="row"><span>KK</span><span id="kk" class="value">0</span></div>
+<div class="row"><span>Orang</span><span id="orang" class="value">0</span></div>
+<div class="bar" id="barTerdampak"></div>
 </div>
 
 <div class="card">
-  <h3>Jumlah Pengungsian</h3>
-  <div class="row"><span>Total</span><span id="pengTotal" class="value">0</span></div>
-  <div class="row small">Laki-laki <span id="pengL">0</span></div>
-  <div class="row small">Perempuan <span id="pengP">0</span></div>
+<h3>Jumlah Pengungsian</h3>
+<div class="row"><span>Total</span><span id="pengTotal" class="value">0</span></div>
+<div class="row small">Laki-laki <span id="pengL">0</span></div>
+<div class="row small">Perempuan <span id="pengP">0</span></div>
 </div>
 
 <div class="card">
-  <h3>Berdasarkan Kategori Usia</h3>
-  <div class="row small">Balita L/P <span id="balita">0 / 0</span></div>
-  <div class="row small">Anak L/P <span id="anak">0 / 0</span></div>
-  <div class="row small">Dewasa L/P <span id="dewasa">0 / 0</span></div>
-  <div class="row small">Lansia L/P <span id="lansia">0 / 0</span></div>
+<h3>Berdasarkan Kategori Usia</h3>
+<div class="row small">Balita L / P <span id="balita">0 / 0</span></div>
+<div class="row small">Anak L / P <span id="anak">0 / 0</span></div>
+<div class="row small">Dewasa L / P <span id="dewasa">0 / 0</span></div>
+<div class="row small">Lansia L / P <span id="lansia">0 / 0</span></div>
+</div>
+
+<div class="card">
+<h3>Kejadian Kebakaran per Kota</h3>
+<div id="kotaList"></div>
 </div>
 
 </div>
 
 <script>
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
+const SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv";
 
-let bulanAktif = new Date().getMonth();
+let bulanAktif=new Date().getMonth();
 const bulanNama=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 
 const tabs=document.getElementById("tabs");
 bulanNama.forEach((b,i)=>{
-  const btn=document.createElement("button");
-  btn.textContent=b;
-  if(i===bulanAktif) btn.classList.add("active");
-  btn.onclick=()=>{
-    bulanAktif=i;
-    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
-    btn.classList.add('active');
-    loadData();
-  };
-  tabs.appendChild(btn);
+ const btn=document.createElement("button");
+ btn.textContent=b;
+ if(i===bulanAktif)btn.classList.add("active");
+ btn.onclick=()=>{
+  bulanAktif=i;
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  loadData();
+ };
+ tabs.appendChild(btn);
 });
 
 function num(v){
-  v=(v||"").toString().replace(/[^0-9]/g,'');
-  return v===""?0:parseInt(v,10);
+ v=(v||"").toString().replace(/[^0-9]/g,'');
+ return v===""?0:parseInt(v,10);
 }
 
 function getBulan(t){
-  t=(t||"").toLowerCase();
-  if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;
-  if(t.includes("mar"))return 2;if(t.includes("apr"))return 3;
-  if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
-  if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;
-  if(t.includes("sep"))return 8;if(t.includes("okt"))return 9;
-  if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
-  const p=t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]/);
-  return p?parseInt(p[2])-1:-1;
+ t=(t||"").toLowerCase();
+ if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;
+ if(t.includes("mar"))return 2;if(t.includes("apr"))return 3;
+ if(t.includes("mei"))return 4;if(t.includes("jun"))return 5;
+ if(t.includes("jul"))return 6;if(t.includes("agu"))return 7;
+ if(t.includes("sep"))return 8;if(t.includes("okt"))return 9;
+ if(t.includes("nov"))return 10;if(t.includes("des"))return 11;
+ const p=t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-]/);
+ return p?parseInt(p[2])-1:-1;
 }
 
 function animate(id,val){
-  const el=document.getElementById(id);
-  const start=parseInt(el.textContent)||0;
-  const dur=500,startTime=performance.now();
-  function step(t){
-    const p=Math.min((t-startTime)/dur,1);
-    el.textContent=Math.floor(start+(val-start)*p);
-    if(p<1)requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
+ const el=document.getElementById(id);
+ const start=parseInt(el.textContent)||0;
+ const dur=500,startTime=performance.now();
+ function step(t){
+  const p=Math.min((t-startTime)/dur,1);
+  el.textContent=Math.floor(start+(val-start)*p);
+  if(p<1)requestAnimationFrame(step);
+ }
+ requestAnimationFrame(step);
 }
 
 function loadData(){
 Papa.parse(SHEET_URL,{
-download:true,
-header:false,
-complete:r=>{
-let rumah=0,kk=0,orang=0;
-let pT=0,pL=0,pP=0;
-let bL=0,bP=0,aL=0,aP=0,dL=0,dP=0,lL=0,lP=0;
+ download:true,
+ complete:r=>{
+ let rumah=0,kk=0,orang=0,pT=0,pL=0,pP=0;
+ let bL=0,bP=0,aL=0,aP=0,dL=0,dP=0,lL=0,lP=0;
+ let kotaCount={};
 
-r.data.forEach(x=>{
- if(getBulan(x[1])!==bulanAktif)return;
+ r.data.forEach(x=>{
+  if(getBulan(x[1])!==bulanAktif)return;
 
- rumah+=num(x[10]);
- kk+=num(x[11]);
- orang+=num(x[12]);
+  rumah+=num(x[10]);
+  kk+=num(x[11]);
+  orang+=num(x[12]);
 
- pT+=num(x[13]); pL+=num(x[14]); pP+=num(x[15]);
+  pT+=num(x[13]); pL+=num(x[14]); pP+=num(x[15]);
 
- bL+=num(x[16]); bP+=num(x[17]);
- aL+=num(x[18]); aP+=num(x[19]);
- dL+=num(x[20]); dP+=num(x[21]);
- lL+=num(x[22]); lP+=num(x[23]);
-});
+  bL+=num(x[16]); bP+=num(x[17]);
+  aL+=num(x[18]); aP+=num(x[19]);
+  dL+=num(x[20]); dP+=num(x[21]);
+  lL+=num(x[22]); lP+=num(x[23]);
 
-animate("rumah",rumah);
-animate("kk",kk);
-animate("orang",orang);
+  let kota=(x[7]||"").trim();
+  if(kota==="")kota="Tidak Teridentifikasi";
+  kotaCount[kota]=(kotaCount[kota]||0)+1;
+ });
 
-animate("pengTotal",pT);
-animate("pengL",pL);
-animate("pengP",pP);
+ animate("rumah",rumah);
+ animate("kk",kk);
+ animate("orang",orang);
+ animate("pengTotal",pT);
+ animate("pengL",pL);
+ animate("pengP",pP);
 
-document.getElementById("balita").textContent=`${bL} / ${bP}`;
-document.getElementById("anak").textContent=`${aL} / ${aP}`;
-document.getElementById("dewasa").textContent=`${dL} / ${dP}`;
-document.getElementById("lansia").textContent=`${lL} / ${lP}`;
+ document.getElementById("balita").textContent=`${bL} / ${bP}`;
+ document.getElementById("anak").textContent=`${aL} / ${aP}`;
+ document.getElementById("dewasa").textContent=`${dL} / ${dP}`;
+ document.getElementById("lansia").textContent=`${lL} / ${lP}`;
 
-document.getElementById("barTerdampak").style.width=
+ document.getElementById("barTerdampak").style.width=
   Math.min(100,(rumah+kk+orang)/10)+"%";
+
+ const kotaDiv=document.getElementById("kotaList");
+ kotaDiv.innerHTML="";
+ const max=Math.max(...Object.values(kotaCount),1);
+ Object.entries(kotaCount).forEach(([k,v])=>{
+  kotaDiv.innerHTML+=`
+   <div class="kota-row">
+    <div class="kota-name">${k} (${v})</div>
+    <div class="kota-bar" style="width:${(v/max)*100}%"></div>
+   </div>`;
+ });
 }});
 }
 
