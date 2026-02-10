@@ -136,15 +136,8 @@ function getBulan(t){
 
 function animate(id,val){
   const el=document.getElementById(id);
-  const s=last[id]||0,d=val-s;let t0=null;
-  function step(ts){
-    if(!t0)t0=ts;
-    const p=Math.min((ts-t0)/600,1);
-    el.innerText=Math.floor(s+d*p);
-    if(p<1)requestAnimationFrame(step);
-  }
+  el.innerText = val; // langsung tampilkan, tanpa animasi
   last[id]=val;
-  requestAnimationFrame(step);
 }
 
 function buatTab(){
@@ -170,6 +163,8 @@ function loadData(){
   Promise.all(CSVs.map(u=>new Promise(res=>{
     Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
   }))).then(all=>{
+    // hanya ambil baris pertama bulan aktif untuk Terdampak
+    let barisTerdampak=null;
     all.flat().slice(1).forEach(r=>{
       if(!(r[3]||"").toLowerCase().includes("kebakaran"))return;
       if(getBulan(r[1])!==bulanAktif)return;
@@ -182,22 +177,24 @@ function loadData(){
       else if(kota.includes("timur"))k.jt++;
       else if(kota.includes("utara"))k.ju++;
 
-      // Jumlah Terdampak ambil dari kolom
-      d.rumah += safeNum(r[10]);
-      d.kk    += safeNum(r[11]);
-      d.orang += safeNum(r[12]);
+      if(!barisTerdampak) barisTerdampak = r;
 
-      // Jumlah Pengungsian
+      // Jumlah Pengungsian dan Kategori Usia tetap dijumlah
       d.tot += safeNum(r[13]);
       d.lk  += safeNum(r[14]);
       d.pr  += safeNum(r[15]);
 
-      // Kategori usia
       d.balital += safeNum(r[16]); d.balitap += safeNum(r[17]);
       d.anakl   += safeNum(r[18]); d.anakp += safeNum(r[19]);
       d.dewasal += safeNum(r[20]); d.dewasap += safeNum(r[21]);
       d.lansial += safeNum(r[22]); d.lansiap += safeNum(r[23]);
     });
+
+    if(barisTerdampak){
+      d.rumah = safeNum(barisTerdampak[10]);
+      d.kk    = safeNum(barisTerdampak[11]);
+      d.orang = safeNum(barisTerdampak[12]);
+    }
 
     Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
   });
