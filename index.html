@@ -33,6 +33,7 @@ h2{margin:8px 12px;font-size:16px}
 .grid{display:grid;gap:8px;padding:8px}
 .grid-6{grid-template-columns:repeat(6,1fr)}
 .grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
 
 .card{
   background:var(--panel);
@@ -42,8 +43,23 @@ h2{margin:8px 12px;font-size:16px}
   font-weight:800;
   position:relative;
 }
-.card span{display:block;font-size:28px;margin-top:4px}
-.bar{position:absolute;left:0;right:0;bottom:0;height:5px;background:#ff5252}
+.card span{
+  display:block;
+  font-size:28px;
+  margin-top:4px;
+}
+.bar{
+  position:absolute;
+  left:0;right:0;bottom:0;height:6px;
+}
+.red{background:#ff5252}
+.orange{background:#ff9800}
+.blue{background:#29b6f6}
+.green{background:#26a69a}
+.purple{background:#7c4dff}
+.teal{background:#00bcd4}
+.pink{background:#ec407a}
+.lime{background:#cddc39}
 </style>
 </head>
 
@@ -52,126 +68,125 @@ h2{margin:8px 12px;font-size:16px}
 <h1>🔥 DATA KEBAKARAN 2026</h1>
 <div class="tabs" id="tabs"></div>
 
+<!-- REKAP KOTA -->
 <div class="grid grid-6">
-  <div class="card">Jakbar<span id="jb">0</span><div class="bar"></div></div>
-  <div class="card">Jakpus<span id="jp">0</span><div class="bar"></div></div>
-  <div class="card">Jaksel<span id="js">0</span><div class="bar"></div></div>
-  <div class="card">Jaktim<span id="jt">0</span><div class="bar"></div></div>
-  <div class="card">Jakut<span id="ju">0</span><div class="bar"></div></div>
-  <div class="card">Total<span id="total">0</span><div class="bar"></div></div>
+<div class="card">Jakbar<span id="jb">0</span><div class="bar red"></div></div>
+<div class="card">Jakpus<span id="jp">0</span><div class="bar red"></div></div>
+<div class="card">Jaksel<span id="js">0</span><div class="bar red"></div></div>
+<div class="card">Jaktim<span id="jt">0</span><div class="bar red"></div></div>
+<div class="card">Jakut<span id="ju">0</span><div class="bar red"></div></div>
+<div class="card">Total<span id="total">0</span><div class="bar red"></div></div>
 </div>
 
-<h2>Korban / Meninggal</h2>
-<div class="grid grid-3">
-  <div class="card">Jumlah<span id="korban">0</span></div>
-</div>
-
-<h2>Jumlah Pasien (Sakit)</h2>
-<div class="grid grid-3">
-  <div class="card">Jumlah<span id="pasien">0</span></div>
-</div>
-
+<!-- JUMLAH TERDAMPAK -->
 <h2>Jumlah Terdampak</h2>
 <div class="grid grid-3">
-  <div class="card">Rumah<span id="rumah">0</span></div>
-  <div class="card">KK<span id="kk">0</span></div>
-  <div class="card">Orang<span id="orang">0</span></div>
+<div class="card">Rumah<span id="rumah">0</span><div class="bar orange"></div></div>
+<div class="card">KK<span id="kk">0</span><div class="bar blue"></div></div>
+<div class="card">Orang<span id="orang">0</span><div class="bar green"></div></div>
 </div>
 
+<!-- KORBAN -->
+<h2>Korban / Meninggal</h2>
+<div class="grid grid-3">
+<div class="card">Meninggal<span id="meninggal">0</span><div class="bar red"></div></div>
+<div class="card">Jumlah Pasien (Sakit)<span id="sakit">0</span><div class="bar pink"></div></div>
+<div class="card">Pengungsian Total<span id="pengungsi">0</span><div class="bar purple"></div></div>
+</div>
+
+<!-- PENGUNGSIAN DETAIL -->
 <h2>Jumlah Pengungsian</h2>
 <div class="grid grid-3">
-  <div class="card">Total<span id="pengTotal">0</span></div>
-  <div class="card">Laki-Laki<span id="pengL">0</span></div>
-  <div class="card">Perempuan<span id="pengP">0</span></div>
+<div class="card">Laki-Laki<span id="lk">0</span><div class="bar teal"></div></div>
+<div class="card">Perempuan<span id="pr">0</span><div class="bar teal"></div></div>
+<div class="card">Total<span id="tot">0</span><div class="bar teal"></div></div>
+</div>
+
+<!-- KATEGORI USIA -->
+<h2>Jumlah Berdasarkan Kategori Usia</h2>
+<div class="grid grid-4">
+<div class="card">Balita L<span id="balL">0</span><div class="bar lime"></div></div>
+<div class="card">Balita P<span id="balP">0</span><div class="bar lime"></div></div>
+<div class="card">Anak L<span id="anakL">0</span><div class="bar teal"></div></div>
+<div class="card">Anak P<span id="anakP">0</span><div class="bar teal"></div></div>
+<div class="card">Dewasa L<span id="dewL">0</span><div class="bar blue"></div></div>
+<div class="card">Dewasa P<span id="dewP">0</span><div class="bar blue"></div></div>
+<div class="card">Lansia L<span id="lanL">0</span><div class="bar purple"></div></div>
+<div class="card">Lansia P<span id="lanP">0</span><div class="bar purple"></div></div>
 </div>
 
 <script>
-const SHEET_ID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
+const sheetID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
+const GIDS=[1241106342,1284284298];
 
-const GID={
-  0:"1241106342",
-  1:"1284284298"
-};
-
-const bulan=["Jan","Feb"];
-let aktif=0;
-
-function num(v){
- if(!v) return 0;
- const x=parseInt(v.toString().replace(/\D/g,""));
- return isNaN(x)?0:x;
-}
+const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+let bulanAktif=new Date().getMonth();
 
 function buatTab(){
- tabs.innerHTML="";
- bulan.forEach((b,i)=>{
-  const d=document.createElement("div");
-  d.className="tab"+(i===aktif?" active":"");
-  d.innerText=b;
-  d.onclick=()=>{
-    aktif=i;
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    d.classList.add("active");
-    loadData();
-  };
-  tabs.appendChild(d);
- });
+tabs.innerHTML="";
+bulan.forEach((b,i)=>{
+let d=document.createElement("div");
+d.className="tab"+(i===bulanAktif?" active":"");
+d.innerText=b;
+d.onclick=()=>{bulanAktif=i;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));d.classList.add("active");loadData()};
+tabs.appendChild(d);
+});
 }
 
+function num(v){return parseInt(v)||0}
+
 function loadData(){
- if(!GID[aktif]) return;
+let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
+let data={
+rumah:0,kk:0,orang:0,
+meninggal:0,sakit:0,
+pengungsi:0,lk:0,pr:0,tot:0,
+balL:0,balP:0,anakL:0,anakP:0,dewL:0,dewP:0,lanL:0,lanP:0
+};
 
- const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID[aktif]}&tqx=out:json`;
+Promise.all(GIDS.map(gid=>
+fetch(`https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gid=${gid}`)
+.then(r=>r.text())
+.then(t=>JSON.parse(t.substr(47).slice(0,-2)))
+)).then(all=>{
+all.forEach(res=>{
+let cols=res.table.cols.map(c=>c.label.toLowerCase().trim());
+res.table.rows.forEach(r=>{
+let c=r.c.map(x=>x?x.v:"");
+let kota=c[cols.indexOf("kota")]||"";
+if(!kota) return;
 
- fetch(url)
- .then(r=>r.text())
- .then(t=>{
-  const json=JSON.parse(t.substring(47,t.length-2));
-  const rows=json.table.rows;
+k.total++;
+if(kota.includes("barat"))k.jb++;
+if(kota.includes("pusat"))k.jp++;
+if(kota.includes("selatan"))k.js++;
+if(kota.includes("timur"))k.jt++;
+if(kota.includes("utara"))k.ju++;
 
-  let h={};
-  json.table.cols.forEach((col,i)=>{
-    h[col.label.trim().toLowerCase()]=i;
-  });
+data.rumah+=num(c[cols.indexOf("jumlah rumah")]);
+data.kk+=num(c[cols.indexOf("jumlah kk")]);
+data.orang+=num(c[cols.indexOf("jumlah orang")]);
+data.meninggal+=num(c[cols.indexOf("jumlah korban / meninggal")]);
+data.sakit+=num(c[cols.indexOf("jumlah sakit")]);
 
-  let data={
-    jb:0,jp:0,js:0,jt:0,ju:0,total:0,
-    korban:0,pasien:0,
-    rumah:0,kk:0,orang:0,
-    pengTotal:0,pengL:0,pengP:0
-  };
+data.lk+=num(c[cols.indexOf("jumlah laki-laki")]);
+data.pr+=num(c[cols.indexOf("jumlah perempuan")]);
+data.tot+=num(c[cols.indexOf("jumlah total")]);
 
-  rows.forEach(r=>{
-    const c=r.c.map(x=>x?x.v:"");
-    const jenis=(c[h["jenis kejadian"]]||"").toLowerCase();
-    if(!jenis.includes("kebakaran")) return;
+data.balL+=num(c[cols.indexOf("balita (laki-laki)")]);
+data.balP+=num(c[cols.indexOf("balita (perempuan)")]);
+data.anakL+=num(c[cols.indexOf("anak (laki-laki)")]);
+data.anakP+=num(c[cols.indexOf("anak (perempuan)")]);
+data.dewL+=num(c[cols.indexOf("dewasa (laki-laki)")]);
+data.dewP+=num(c[cols.indexOf("dewasa (perempuan)")]);
+data.lanL+=num(c[cols.indexOf("lansia (laki-laki)")]);
+data.lanP+=num(c[cols.indexOf("lansia (perempuan)")]);
+});
+});
 
-    data.total++;
-
-    const kota=(c[h["kota"]]||"").toLowerCase();
-    if(kota.includes("barat")) data.jb++;
-    else if(kota.includes("pusat")) data.jp++;
-    else if(kota.includes("selatan")) data.js++;
-    else if(kota.includes("timur")) data.jt++;
-    else if(kota.includes("utara")) data.ju++;
-
-    data.korban += num(c[h["jumlah korban / meninggal"]]);
-    data.pasien += num(c[h["jumlah sakit"]]);
-
-    data.rumah  += num(c[h["jumlah rumah"]]);
-    data.kk     += num(c[h["jumlah kk"]]);
-    data.orang  += num(c[h["jumlah orang"]]);
-
-    data.pengTotal += num(c[h["jumlah total"]]);
-    data.pengL     += num(c[h["jumlah laki-laki"]]);
-    data.pengP     += num(c[h["jumlah perempuan"]]);
-  });
-
-  Object.keys(data).forEach(id=>{
-    document.getElementById(id).innerText=data[id];
-  });
-
- });
+Object.keys(k).forEach(id=>document.getElementById(id).innerText=k[id]);
+Object.keys(data).forEach(id=>document.getElementById(id).innerText=data[id]);
+});
 }
 
 buatTab();
