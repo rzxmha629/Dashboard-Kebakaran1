@@ -2,215 +2,173 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard Data Kejadian Kebakaran 2026</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Kebakaran 2026</title>
 
 <style>
+:root{
+  --bg:#0b0e14;
+  --panel:#111726;
+  --text:#eaeaea;
+}
 body{
   margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#0f1115;
-  color:#fff;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Segoe UI,Arial,sans-serif;
 }
-header{
-  background:#151922;
-  padding:16px;
-  text-align:center;
-  font-size:20px;
-  font-weight:bold;
+h1{margin:10px;font-size:22px;font-weight:900}
+h2{margin:8px 12px;font-size:16px}
+
+.tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
+.tab{
+  padding:6px 14px;
+  background:#222;
+  border-radius:20px;
+  cursor:pointer;
+  font-weight:700;
 }
-.container{
-  padding:16px;
-}
-select{
-  padding:6px 10px;
-  font-size:14px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
-  margin-top:16px;
-}
+.tab.active{background:#ff5252;color:#111}
+
+.grid{display:grid;gap:8px;padding:8px}
+.grid-6{grid-template-columns:repeat(6,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+
 .card{
-  background:#1b2030;
-  border-radius:8px;
-  padding:14px;
-}
-.card h3{
-  margin:0 0 6px;
-  font-size:14px;
-  color:#9aa4ff;
-}
-.card .value{
-  font-size:26px;
-  font-weight:bold;
-}
-.sub{
-  font-size:12px;
-  color:#aaa;
-}
-.footer{
+  background:var(--panel);
+  border-radius:14px;
+  padding:12px;
   text-align:center;
-  font-size:12px;
-  color:#888;
-  margin-top:20px;
+  font-weight:800;
+  position:relative;
 }
+.card span{display:block;font-size:28px;margin-top:4px}
+.bar{position:absolute;left:0;right:0;bottom:0;height:5px;background:#ff5252}
 </style>
 </head>
 
 <body>
 
-<header>
-  DATA KEJADIAN KEBAKARAN 2026
-</header>
+<h1>🔥 DATA KEBAKARAN 2026</h1>
+<div class="tabs" id="tabs"></div>
 
-<div class="container">
-
-<label>Pilih Bulan:</label>
-<select id="bulan" onchange="loadData(this.value)">
-  <option value="1">Januari</option>
-  <option value="2">Februari</option>
-  <option value="3">Maret</option>
-  <option value="4">April</option>
-  <option value="5">Mei</option>
-  <option value="6">Juni</option>
-  <option value="7">Juli</option>
-  <option value="8">Agustus</option>
-  <option value="9">September</option>
-  <option value="10">Oktober</option>
-  <option value="11">November</option>
-  <option value="12">Desember</option>
-</select>
-
-<div class="grid">
-
-<div class="card">
-  <h3>Total Kejadian</h3>
-  <div class="value" id="total">0</div>
+<!-- REKAP KOTA -->
+<div class="grid grid-6">
+  <div class="card">Jakbar<span id="jb">0</span><div class="bar"></div></div>
+  <div class="card">Jakpus<span id="jp">0</span><div class="bar"></div></div>
+  <div class="card">Jaksel<span id="js">0</span><div class="bar"></div></div>
+  <div class="card">Jaktim<span id="jt">0</span><div class="bar"></div></div>
+  <div class="card">Jakut<span id="ju">0</span><div class="bar"></div></div>
+  <div class="card">Total<span id="total">0</span><div class="bar"></div></div>
 </div>
 
-<div class="card">
-  <h3>Jakarta Barat</h3>
-  <div class="value" id="jb">0</div>
+<!-- KORBAN -->
+<h2>Korban / Meninggal</h2>
+<div class="grid grid-3">
+  <div class="card">Jumlah<span id="korban">0</span></div>
 </div>
 
-<div class="card">
-  <h3>Jakarta Pusat</h3>
-  <div class="value" id="jp">0</div>
+<!-- PASIEN -->
+<h2>Jumlah Pasien (Sakit)</h2>
+<div class="grid grid-3">
+  <div class="card">Jumlah<span id="pasien">0</span></div>
 </div>
 
-<div class="card">
-  <h3>Jakarta Selatan</h3>
-  <div class="value" id="js">0</div>
+<!-- TERDAMPAK -->
+<h2>Jumlah Terdampak</h2>
+<div class="grid grid-3">
+  <div class="card">Rumah<span id="rumah">0</span></div>
+  <div class="card">KK<span id="kk">0</span></div>
+  <div class="card">Orang<span id="orang">0</span></div>
 </div>
 
-<div class="card">
-  <h3>Jakarta Timur</h3>
-  <div class="value" id="jt">0</div>
-</div>
-
-<div class="card">
-  <h3>Jakarta Utara</h3>
-  <div class="value" id="ju">0</div>
-</div>
-
-<div class="card">
-  <h3>Korban / Meninggal</h3>
-  <div class="value" id="korban">0</div>
-</div>
-
-<div class="card">
-  <h3>Jumlah Pasien (Sakit)</h3>
-  <div class="value" id="pasien">0</div>
-</div>
-
-<div class="card">
-  <h3>Jumlah Terdampak</h3>
-  <div class="sub">Rumah</div>
-  <div class="value" id="rumah">0</div>
-  <div class="sub">KK</div>
-  <div class="value" id="kk">0</div>
-  <div class="sub">Orang</div>
-  <div class="value" id="orang">0</div>
-</div>
-
-<div class="card">
-  <h3>Jumlah Pengungsian</h3>
-  <div class="sub">Total</div>
-  <div class="value" id="pengTotal">0</div>
-  <div class="sub">Laki-laki</div>
-  <div class="value" id="pengL">0</div>
-  <div class="sub">Perempuan</div>
-  <div class="value" id="pengP">0</div>
-</div>
-
-</div>
-
-<div class="footer">
-  Dashboard Kebakaran • Google Sheets • GitHub Pages
-</div>
-
+<!-- PENGUNGSIAN -->
+<h2>Jumlah Pengungsian</h2>
+<div class="grid grid-3">
+  <div class="card">Total<span id="pengTotal">0</span></div>
+  <div class="card">Laki-Laki<span id="pengL">0</span></div>
+  <div class="card">Perempuan<span id="pengP">0</span></div>
 </div>
 
 <script>
 const SHEET_ID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
 
-const GID_BULAN={
-  1:"1241106342", // JANUARI
-  2:"1284284298"  // FEBRUARI
-  // bulan lain belum ada
+const GID={
+  0:"1241106342", // JANUARI
+  1:"1284284298"  // FEBRUARI
 };
 
+const bulan=["Jan","Feb"];
+let aktif=0;
+
 function n(v){
- if(v===null||v===undefined) return 0;
+ if(!v) return 0;
  const x=parseInt(v.toString().replace(/\D/g,""));
  return isNaN(x)?0:x;
 }
 
-function reset(){
- ["total","jb","jp","js","jt","ju","korban","pasien",
-  "rumah","kk","orang","pengTotal","pengL","pengP"]
- .forEach(id=>document.getElementById(id).textContent=0);
+function buatTab(){
+ tabs.innerHTML="";
+ bulan.forEach((b,i)=>{
+  const d=document.createElement("div");
+  d.className="tab"+(i===aktif?" active":"");
+  d.innerText=b;
+  d.onclick=()=>{
+    aktif=i;
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    d.classList.add("active");
+    loadData();
+  };
+  tabs.appendChild(d);
+ });
 }
 
-function loadData(bulan){
- reset();
- if(!GID_BULAN[bulan]) return;
+function reset(){
+ ["jb","jp","js","jt","ju","total","korban","pasien",
+  "rumah","kk","orang","pengTotal","pengL","pengP"]
+ .forEach(id=>document.getElementById(id).innerText=0);
+}
 
- const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID_BULAN[bulan]}&tqx=out:json`;
+function loadData(){
+ reset();
+ if(!GID[aktif]) return;
+
+ const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID[aktif]}&tqx=out:json`;
 
  fetch(url)
  .then(r=>r.text())
  .then(t=>{
   const json=JSON.parse(t.substring(47,t.length-2));
-  json.table.rows.forEach(r=>{
-   const c=r.c.map(x=>x?x.v:"");
+  json.table.rows.forEach(row=>{
+   const c=row.c.map(x=>x?x.v:"");
    if(!(c[3]||"").toLowerCase().includes("kebakaran")) return;
 
-   total.textContent++;
+   total.innerText++;
    const kota=(c[7]||"").toLowerCase();
-   if(kota.includes("barat")) jb.textContent++;
-   else if(kota.includes("pusat")) jp.textContent++;
-   else if(kota.includes("selatan")) js.textContent++;
-   else if(kota.includes("timur")) jt.textContent++;
-   else if(kota.includes("utara")) ju.textContent++;
+   if(kota.includes("barat")) jb.innerText++;
+   else if(kota.includes("pusat")) jp.innerText++;
+   else if(kota.includes("selatan")) js.innerText++;
+   else if(kota.includes("timur")) jt.innerText++;
+   else if(kota.includes("utara")) ju.innerText++;
 
-   korban.textContent=n(korban.textContent)+n(c[9]);
-   pasien.textContent=n(pasien.textContent)+n(c[11]);
+   // ===== MAPPING SESUAI STRUKTUR SHEET KAMU =====
 
-   rumah.textContent=n(rumah.textContent)+n(c[12]);
-   kk.textContent=n(kk.textContent)+n(c[13]);
-   orang.textContent=n(orang.textContent)+n(c[14]);
+   korban.innerText     = n(korban.innerText)     + n(c[9]);   // Jumlah Korban/Meninggal
+   pasien.innerText     = n(pasien.innerText)     + n(c[10]);  // Jumlah Sakit
 
-   pengTotal.textContent=n(pengTotal.textContent)+n(c[15]);
-   pengL.textContent=n(pengL.textContent)+n(c[16]);
-   pengP.textContent=n(pengP.textContent)+n(c[17]);
+   rumah.innerText      = n(rumah.innerText)      + n(c[12]);  // Jumlah Rumah
+   kk.innerText         = n(kk.innerText)         + n(c[13]);  // Jumlah KK
+   orang.innerText      = n(orang.innerText)      + n(c[14]);  // Jumlah Orang
+
+   pengTotal.innerText  = n(pengTotal.innerText)  + n(c[15]);  // Jumlah Total
+   pengL.innerText      = n(pengL.innerText)      + n(c[16]);  // Laki-Laki
+   pengP.innerText      = n(pengP.innerText)      + n(c[17]);  // Perempuan
   });
  });
 }
 
-loadData(1);
+buatTab();
+loadData();
 </script>
 
 </body>
