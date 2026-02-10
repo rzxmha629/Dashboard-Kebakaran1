@@ -78,15 +78,16 @@ const SHEETS=[
   {label:"Feb", url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?gid=1284284298&single=true&output=csv"}
 ];
 
+// Kolom sesuai CSV
 const COL_KEYS={
- jenis:"Jenis Kejadian", kota:"Kota",
- rumah:"Jumlah Rumah", kk:"Jumlah KK", orang:"Jumlah Terdampak",
- pengungsi:"Jumlah Pengungsian", lk:"Laki-Laki", pr:"Perempuan",
- sakit:"Jumlah Sakit",
- balitaL:"Balita L", balitaP:"Balita P",
- anakL:"Anak L", anakP:"Anak P",
- dewasaL:"Dewasa L", dewasaP:"Dewasa P",
- lansiaL:"Lansia L", lansiaP:"Lansia P"
+ kota:"Kota",
+ rumah:"Jumlah Rumah", kk:"Jumlah KK", orang:"Jumlah Orang",
+ pengungsianTotal:"Jumlah Total", lk:"Jumlah Laki-Laki", pr:"Jumlah Perempuan",
+ pasien:"Pasien Sakit",
+ balital:"Balita L", balitap:"Balita P",
+ anakl:"Anak L", anakp:"Anak P",
+ dewasal:"Dewasa L", dewasap:"Dewasa P",
+ lansial:"Lansia L", lansiap:"Lansia P"
 };
 
 let bulanAktif=0;
@@ -119,22 +120,22 @@ function buatTab(){
 
 function load(){
  let c={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
- let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
-        balital:0,balitap:0,anakl:0,anakp:0,
-        dewasal:0,dewasap:0,lansial:0,lansiap:0};
+ let d={
+   rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,pasien:0,
+   balital:0,balitap:0,anakl:0,anakp:0,
+   dewasal:0,dewasap:0,lansial:0,lansiap:0
+ };
 
  Papa.parse(SHEETS[bulanAktif].url,{
   download:true,skipEmptyLines:true,
   complete:r=>{
     if(!r.data || r.data.length<2) return;
-    const headers=r.data[0].map(h=>h.trim().toLowerCase());
+    const headers=r.data[0].map(h=>h.trim());
     const idx=Object.fromEntries(headers.map((v,i)=>[v,i]));
 
     r.data.slice(1).forEach(row=>{
-      const jenis=(row[idx[COL_KEYS.jenis.toLowerCase()]||""]||"").toLowerCase();
-      if(!jenis.includes("kebakaran")) return;
-
-      const kota=(row[idx[COL_KEYS.kota.toLowerCase()]||""]||"").toLowerCase();
+      const kota=(row[idx[COL_KEYS.kota]||""]||"").toLowerCase();
+      if(!kota) return;
       c.total++;
       if(kota.includes("barat")) c.jb++;
       else if(kota.includes("pusat")) c.jp++;
@@ -142,22 +143,24 @@ function load(){
       else if(kota.includes("timur")) c.jt++;
       else if(kota.includes("utara")) c.ju++;
 
-      d.rumah+=num(row[idx[COL_KEYS.rumah.toLowerCase()]||""]);
-      d.kk+=num(row[idx[COL_KEYS.kk.toLowerCase()]||""]);
-      d.orang+=num(row[idx[COL_KEYS.orang.toLowerCase()]||""]);
-      d.tot+=num(row[idx[COL_KEYS.pengungsi.toLowerCase()]||""]);
-      d.lk+=num(row[idx[COL_KEYS.lk.toLowerCase()]||""]);
-      d.pr+=num(row[idx[COL_KEYS.pr.toLowerCase()]||""]);
-      d.pasien+=num(row[idx[COL_KEYS.sakit.toLowerCase()]||""]);
+      d.rumah+=num(row[idx[COL_KEYS.rumah]||""]);
+      d.kk+=num(row[idx[COL_KEYS.kk]||""]);
+      d.orang+=num(row[idx[COL_KEYS.orang]||""]);
 
-      d.balital+=num(row[idx[COL_KEYS.balitaL.toLowerCase()]||""]);
-      d.balitap+=num(row[idx[COL_KEYS.balitaP.toLowerCase()]||""]);
-      d.anakl+=num(row[idx[COL_KEYS.anakL.toLowerCase()]||""]);
-      d.anakp+=num(row[idx[COL_KEYS.anakP.toLowerCase()]||""]);
-      d.dewasal+=num(row[idx[COL_KEYS.dewasaL.toLowerCase()]||""]);
-      d.dewasap+=num(row[idx[COL_KEYS.dewasaP.toLowerCase()]||""]);
-      d.lansial+=num(row[idx[COL_KEYS.lansiaL.toLowerCase()]||""]);
-      d.lansiap+=num(row[idx[COL_KEYS.lansiaP.toLowerCase()]||""]);
+      d.tot+=num(row[idx[COL_KEYS.pengungsianTotal]||""]);
+      d.lk+=num(row[idx[COL_KEYS.lk]||""]);
+      d.pr+=num(row[idx[COL_KEYS.pr]||""]);
+
+      d.pasien+=num(row[idx[COL_KEYS.pasien]||""]);
+
+      d.balital+=num(row[idx[COL_KEYS.balital]||""]);
+      d.balitap+=num(row[idx[COL_KEYS.balitap]||""]);
+      d.anakl+=num(row[idx[COL_KEYS.anakl]||""]);
+      d.anakp+=num(row[idx[COL_KEYS.anakp]||""]);
+      d.dewasal+=num(row[idx[COL_KEYS.dewasal]||""]);
+      d.dewasap+=num(row[idx[COL_KEYS.dewasap]||""]);
+      d.lansial+=num(row[idx[COL_KEYS.lansial]||""]);
+      d.lansiap+=num(row[idx[COL_KEYS.lansiap]||""]);
     });
 
     Object.entries({...c,...d}).forEach(([k,v])=>animate(k,v));
