@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard Kebakaran 2026</title>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <style>
 :root{
   --bg:#0b0e14;
@@ -107,15 +109,16 @@ h2{margin:8px 12px;font-size:16px}
 </div>
 
 <script>
-const PUBHTML = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pubhtml";
+const CSVs=[
+ "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1241106342",
+ "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4JZD0cxRHeBcSJm0KZMXewwX19RWJL1GrNcn2ZQeyeQpVByaiIyt0_FCPEcaRMA/pub?output=csv&gid=1284284298"
+];
 
 const bulan=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
 let bulanAktif=new Date().getMonth();
 let last={};
 
-function num(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
-
-/* PARSING BULAN */
+function safeNum(v){return parseInt((v||"0").toString().replace(/[^0-9]/g,""))||0}
 function getBulan(t){
  t=(t||"").toLowerCase();
  if(t.includes("jan"))return 0;if(t.includes("feb"))return 1;if(t.includes("mar"))return 2;
@@ -126,7 +129,6 @@ function getBulan(t){
  return p?parseInt(p[2])-1:-1;
 }
 
-/* ANIMASI ANGKA */
 function animate(id,val){
  const el=document.getElementById(id);
  const s=last[id]||0,d=val-s;let t0=null;
@@ -139,7 +141,6 @@ function animate(id,val){
  last[id]=val;requestAnimationFrame(step);
 }
 
-/* TAB BULAN */
 function buatTab(){
  tabs.innerHTML="";
  bulan.forEach((b,i)=>{
@@ -151,61 +152,52 @@ function buatTab(){
  });
 }
 
-/* LOAD DATA PUBHTML */
 function loadData(){
- fetch(PUBHTML).then(r=>r.text()).then(t=>{
-   const parser=new DOMParser();
-   const doc=parser.parseFromString(t,"text/html");
-   const tables=doc.querySelectorAll("table");
-   if(!tables.length) return;
+ let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
+ let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
+        balital:0,balitap:0,anakl:0,anakp:0,
+        dewasal:0,dewasap:0,lansial:0,lansiap:0};
+ let barisTerdampak=null;
 
-   let k={jb:0,jp:0,js:0,jt:0,ju:0,total:0};
-   let d={rumah:0,kk:0,orang:0,tot:0,lk:0,pr:0,
-          balital:0,balitap:0,anakl:0,anakp:0,
-          dewasal:0,dewasap:0,lansial:0,lansiap:0};
+ Promise.all(CSVs.map(u=>new Promise(res=>{
+  Papa.parse(u,{download:true,skipEmptyLines:true,complete:r=>res(r.data)});
+ }))).then(all=>{
+  all.flat().slice(1).forEach(r=>{
+    if(!(r[3]||"").toLowerCase().includes("kebakaran")) return;
+    if(getBulan(r[1])!==bulanAktif) return;
 
-   tables.forEach(table=>{
-     const rows=Array.from(table.querySelectorAll("tr")).slice(1);
-     rows.forEach(row=>{
-       const cells=row.querySelectorAll("td");
-       if(!cells.length) return;
-       const jenis=cells[3]?.innerText.toLowerCase()||"";
-       if(!jenis.includes("kebakaran")) return;
+    const kota=(r[7]||"").toLowerCase();
+    k.total++;
+    if(kota.includes("barat")) k.jb++;
+    else if(kota.includes("pusat")) k.jp++;
+    else if(kota.includes("selatan")) k.js++;
+    else if(kota.includes("timur")) k.jt++;
+    else if(kota.includes("utara")) k.ju++;
 
-       const bulanRow=getBulan(cells[1]?.innerText);
-       if(bulanRow!==bulanAktif) return;
+    if(!barisTerdampak) barisTerdampak=r;
 
-       const kota=(cells[7]?.innerText||"").toLowerCase();
-       k.total++;
-       if(kota.includes("barat")) k.jb++;
-       else if(kota.includes("pusat")) k.jp++;
-       else if(kota.includes("selatan")) k.js++;
-       else if(kota.includes("timur")) k.jt++;
-       else if(kota.includes("utara")) k.ju++;
+    // Jumlah Pengungsian & Kategori Usia
+    d.tot  += safeNum(r[13]);
+    d.lk   += safeNum(r[14]);
+    d.pr   += safeNum(r[15]);
+    d.balital += safeNum(r[16]); d.balitap += safeNum(r[17]);
+    d.anakl   += safeNum(r[18]); d.anakp += safeNum(r[19]);
+    d.dewasal += safeNum(r[20]); d.dewasap += safeNum(r[21]);
+    d.lansial += safeNum(r[22]); d.lansiap += safeNum(r[23]);
+  });
 
-       d.rumah+=num(cells[10]?.innerText);
-       d.kk+=num(cells[11]?.innerText);
-       d.orang+=num(cells[12]?.innerText);
-       d.tot+=num(cells[13]?.innerText);
-       d.lk+=num(cells[14]?.innerText);
-       d.pr+=num(cells[15]?.innerText);
-       d.balital+=num(cells[16]?.innerText);
-       d.balitap+=num(cells[17]?.innerText);
-       d.anakl+=num(cells[18]?.innerText);
-       d.anakp+=num(cells[19]?.innerText);
-       d.dewasal+=num(cells[20]?.innerText);
-       d.dewasap+=num(cells[21]?.innerText);
-       d.lansial+=num(cells[22]?.innerText);
-       d.lansiap+=num(cells[23]?.innerText);
-     });
-   });
+  // Ambil Terdampak dari kolom Jumlah Rumah / KK / Orang
+  if(barisTerdampak){
+    d.rumah = safeNum(barisTerdampak[10]);
+    d.kk    = safeNum(barisTerdampak[11]);
+    d.orang = safeNum(barisTerdampak[12]);
+  }
 
-   Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
+  Object.entries({...k,...d}).forEach(([i,v])=>animate(i,v));
  });
 }
 
-buatTab();
-loadData();
+buatTab();loadData();
 setInterval(loadData,180000);
 </script>
 
