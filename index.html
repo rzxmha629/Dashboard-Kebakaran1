@@ -2,180 +2,377 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard Kebakaran 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SMART MONITORING KEBAKARAN</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{
-  --bg:#0b0e14;
-  --panel:#111726;
-  --text:#eaeaea;
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
 }
+
 body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
+background:#030b18;
+color:white;
+padding:15px;
 }
-h1{margin:10px;font-size:22px;font-weight:900}
-h2{margin:8px 12px;font-size:16px}
 
-.tabs{display:flex;gap:6px;padding:6px 10px;flex-wrap:wrap}
-.tab{
-  padding:6px 14px;
-  background:#222;
-  border-radius:20px;
-  cursor:pointer;
-  font-weight:700;
+.header{
+background:#071a35;
+border:1px solid #00bfff;
+padding:20px;
+border-radius:10px;
+margin-bottom:15px;
+box-shadow:0 0 15px #00bfff55;
 }
-.tab.active{background:#ff5252;color:#111}
 
-.grid{display:grid;gap:8px;padding:8px}
-.grid-6{grid-template-columns:repeat(6,1fr)}
-.grid-3{grid-template-columns:repeat(3,1fr)}
+.header h1{
+color:#ff3b3b;
+font-size:34px;
+}
+
+.header p{
+color:#6fd8ff;
+margin-top:5px;
+}
+
+.cards{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+margin-bottom:15px;
+}
 
 .card{
-  background:var(--panel);
-  border-radius:14px;
-  padding:12px;
-  text-align:center;
-  font-weight:800;
-  position:relative;
+padding:20px;
+border-radius:10px;
+text-align:center;
+background:#071a35;
 }
-.card span{display:block;font-size:28px;margin-top:4px}
-.bar{position:absolute;left:0;right:0;bottom:0;height:5px;background:#ff5252}
+
+.card h2{
+font-size:42px;
+}
+
+.red{
+border:2px solid #ff3b3b;
+box-shadow:0 0 15px #ff3b3b44;
+}
+
+.orange{
+border:2px solid orange;
+box-shadow:0 0 15px orange;
+}
+
+.blue{
+border:2px solid #00bfff;
+box-shadow:0 0 15px #00bfff55;
+}
+
+.green{
+border:2px solid #00ff88;
+box-shadow:0 0 15px #00ff8855;
+}
+
+.grid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:15px;
+margin-bottom:15px;
+}
+
+.panel{
+background:#071a35;
+border:1px solid #00bfff;
+border-radius:10px;
+padding:15px;
+box-shadow:0 0 10px #00bfff33;
+}
+
+.panel-title{
+font-size:18px;
+color:#6fd8ff;
+margin-bottom:15px;
+}
+
+.chart-container{
+height:300px;
+}
+
+.summary{
+line-height:1.8;
+font-size:15px;
+}
+
+.footer{
+margin-top:15px;
+text-align:center;
+color:#999;
+}
+
+@media(max-width:900px){
+
+.grid{
+grid-template-columns:1fr;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
-<h1>🔥 DATA KEBAKARAN 2026</h1>
-<div class="tabs" id="tabs"></div>
+<div class="header">
 
-<div class="grid grid-6">
-  <div class="card">Jakbar<span id="jb">0</span><div class="bar"></div></div>
-  <div class="card">Jakpus<span id="jp">0</span><div class="bar"></div></div>
-  <div class="card">Jaksel<span id="js">0</span><div class="bar"></div></div>
-  <div class="card">Jaktim<span id="jt">0</span><div class="bar"></div></div>
-  <div class="card">Jakut<span id="ju">0</span><div class="bar"></div></div>
-  <div class="card">Total<span id="total">0</span><div class="bar"></div></div>
+<h1>SMART MONITORING KEBAKARAN</h1>
+
+<p>
+Pos Kesehatan Kejadian Kebakaran Kemayoran
+<br>
+Update : 5 Juni 2026 | 07.00 WIB
+</p>
+
 </div>
 
-<h2>Korban / Meninggal</h2>
-<div class="grid grid-3">
-  <div class="card">Jumlah<span id="korban">0</span></div>
+<div class="cards">
+
+<div class="card red">
+<h2>1</h2>
+<p>Kejadian Kebakaran</p>
 </div>
 
-<h2>Jumlah Pasien (Sakit)</h2>
-<div class="grid grid-3">
-  <div class="card">Jumlah<span id="pasien">0</span></div>
+<div class="card orange">
+<h2>250</h2>
+<p>Rumah Terdampak</p>
 </div>
 
-<h2>Jumlah Terdampak</h2>
-<div class="grid grid-3">
-  <div class="card">Rumah<span id="rumah">0</span></div>
-  <div class="card">KK<span id="kk">0</span></div>
-  <div class="card">Orang<span id="orang">0</span></div>
+<div class="card blue">
+<h2>678</h2>
+<p>Pengungsi</p>
 </div>
 
-<h2>Jumlah Pengungsian</h2>
-<div class="grid grid-3">
-  <div class="card">Total<span id="pengTotal">0</span></div>
-  <div class="card">Laki-Laki<span id="pengL">0</span></div>
-  <div class="card">Perempuan<span id="pengP">0</span></div>
+<div class="card green">
+<h2>253</h2>
+<p>Total Pasien</p>
+</div>
+
+</div>
+
+<div class="cards">
+
+<div class="card blue">
+<h2>330</h2>
+<p>KK Terdampak</p>
+</div>
+
+<div class="card green">
+<h2>251</h2>
+<p>Rawat Jalan</p>
+</div>
+
+<div class="card red">
+<h2>2</h2>
+<p>Rawat Inap</p>
+</div>
+
+<div class="card orange">
+<h2>2</h2>
+<p>Pos Kesehatan</p>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="panel">
+
+<div class="panel-title">
+Tren Pelayanan Pasien
+</div>
+
+<div class="chart-container">
+<canvas id="trendChart"></canvas>
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+Sebaran Jenis Kelamin
+</div>
+
+<div class="chart-container">
+<canvas id="genderChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="panel">
+
+<div class="panel-title">
+Sebaran Diagnosa
+</div>
+
+<div class="chart-container">
+<canvas id="diagnosaChart"></canvas>
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+Ringkasan Kejadian
+</div>
+
+<div class="summary">
+
+<b>Lokasi :</b><br>
+Jl. Kemayoran Gempol RT 02 RW 05
+Kel. Kebon Kosong
+Kec. Kemayoran
+Jakarta Pusat
+
+<br><br>
+
+<b>Jumlah Jiwa :</b> 678 Orang
+
+<br>
+
+<b>KK :</b> 330 KK
+
+<br>
+
+<b>Rumah :</b> 250 Rumah
+
+<br><br>
+
+<b>RS Rujukan :</b>
+
+<ul>
+<li>RSUD Kemayoran</li>
+<li>RSUD Tarakan</li>
+<li>RS Hermina Kemayoran</li>
+</ul>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-title">
+Upaya Kesehatan Yang Dilakukan
+</div>
+
+<ul style="line-height:2">
+
+<li>Mensiagakan Tenaga Kesehatan 24 Jam</li>
+
+<li>Mensiagakan Ambulans 24 Jam</li>
+
+<li>Pelayanan Sub Klaster Kesehatan</li>
+
+<li>Pemantauan dan Pelaporan Berkala</li>
+
+<li>Rujukan ke RSUD Kemayoran dan RSUD Tarakan</li>
+
+</ul>
+
+</div>
+
+<div class="footer">
+SMART MONITORING KEBAKARAN © 2026
 </div>
 
 <script>
-const SHEET_ID="1PU8hf7BEu142XSi0QjCMDgPsD6KaSFET";
 
-const GID={
-  0:"1241106342",
-  1:"1284284298"
-};
-
-const bulan=["Jan","Feb"];
-let aktif=0;
-
-function num(v){
- if(!v) return 0;
- const x=parseInt(v.toString().replace(/\D/g,""));
- return isNaN(x)?0:x;
+new Chart(
+document.getElementById('genderChart'),
+{
+type:'doughnut',
+data:{
+labels:[
+'Laki-laki',
+'Perempuan'
+],
+datasets:[{
+data:[
+124,
+129
+]
+}]
 }
-
-function buatTab(){
- tabs.innerHTML="";
- bulan.forEach((b,i)=>{
-  const d=document.createElement("div");
-  d.className="tab"+(i===aktif?" active":"");
-  d.innerText=b;
-  d.onclick=()=>{
-    aktif=i;
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-    d.classList.add("active");
-    loadData();
-  };
-  tabs.appendChild(d);
- });
 }
+);
 
-function loadData(){
- if(!GID[aktif]) return;
-
- const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID[aktif]}&tqx=out:json`;
-
- fetch(url)
- .then(r=>r.text())
- .then(t=>{
-  const json=JSON.parse(t.substring(47,t.length-2));
-  const rows=json.table.rows;
-
-  let h={};
-  json.table.cols.forEach((col,i)=>{
-    h[col.label.trim().toLowerCase()]=i;
-  });
-
-  let data={
-    jb:0,jp:0,js:0,jt:0,ju:0,total:0,
-    korban:0,pasien:0,
-    rumah:0,kk:0,orang:0,
-    pengTotal:0,pengL:0,pengP:0
-  };
-
-  rows.forEach(r=>{
-    const c=r.c.map(x=>x?x.v:"");
-    const jenis=(c[h["jenis kejadian"]]||"").toLowerCase();
-    if(!jenis.includes("kebakaran")) return;
-
-    data.total++;
-
-    const kota=(c[h["kota"]]||"").toLowerCase();
-    if(kota.includes("barat")) data.jb++;
-    else if(kota.includes("pusat")) data.jp++;
-    else if(kota.includes("selatan")) data.js++;
-    else if(kota.includes("timur")) data.jt++;
-    else if(kota.includes("utara")) data.ju++;
-
-    data.korban += num(c[h["jumlah korban / meninggal"]]);
-    data.pasien += num(c[h["jumlah sakit"]]);
-
-    data.rumah  += num(c[h["jumlah rumah"]]);
-    data.kk     += num(c[h["jumlah kk"]]);
-    data.orang  += num(c[h["jumlah orang"]]);
-
-    data.pengTotal += num(c[h["jumlah total"]]);
-    data.pengL     += num(c[h["jumlah laki-laki"]]);
-    data.pengP     += num(c[h["jumlah perempuan"]]);
-  });
-
-  Object.keys(data).forEach(id=>{
-    document.getElementById(id).innerText=data[id];
-  });
-
- });
+new Chart(
+document.getElementById('diagnosaChart'),
+{
+type:'pie',
+data:{
+labels:[
+'Hipertensi',
+'Headache',
+'Nasofaringitis',
+'Panic Disorder',
+'Dispnea'
+],
+datasets:[{
+data:[
+46,
+24,
+19,
+5,
+4
+]
+}]
 }
+}
+);
 
-buatTab();
-loadData();
+new Chart(
+document.getElementById('trendChart'),
+{
+type:'bar',
+data:{
+labels:[
+'1 Juni',
+'2-3 Juni',
+'3 Juni',
+'4 Juni Pagi',
+'4 Juni Sore',
+'5 Juni'
+],
+datasets:[{
+label:'Jumlah Pasien',
+data:[
+14,
+102,
+58,
+66,
+55,
+71
+]
+}]
+}
+}
+);
+
 </script>
 
 </body>
