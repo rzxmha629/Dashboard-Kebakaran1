@@ -1,379 +1,103 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>SMART MONITORING KEBAKARAN</title>
-
+<title>Smart Monitoring Kebakaran</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
-}
-
-body{
-background:#030b18;
-color:white;
-padding:15px;
-}
-
-.header{
-background:#071a35;
-border:1px solid #00bfff;
-padding:20px;
-border-radius:10px;
-margin-bottom:15px;
-box-shadow:0 0 15px #00bfff55;
-}
-
-.header h1{
-color:#ff3b3b;
-font-size:34px;
-}
-
-.header p{
-color:#6fd8ff;
-margin-top:5px;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-margin-bottom:15px;
-}
-
-.card{
-padding:20px;
-border-radius:10px;
-text-align:center;
-background:#071a35;
-}
-
-.card h2{
-font-size:42px;
-}
-
-.red{
-border:2px solid #ff3b3b;
-box-shadow:0 0 15px #ff3b3b44;
-}
-
-.orange{
-border:2px solid orange;
-box-shadow:0 0 15px orange;
-}
-
-.blue{
-border:2px solid #00bfff;
-box-shadow:0 0 15px #00bfff55;
-}
-
-.green{
-border:2px solid #00ff88;
-box-shadow:0 0 15px #00ff8855;
-}
-
-.grid{
-display:grid;
-grid-template-columns:2fr 1fr;
-gap:15px;
-margin-bottom:15px;
-}
-
-.panel{
-background:#071a35;
-border:1px solid #00bfff;
-border-radius:10px;
-padding:15px;
-box-shadow:0 0 10px #00bfff33;
-}
-
-.panel-title{
-font-size:18px;
-color:#6fd8ff;
-margin-bottom:15px;
-}
-
-.chart-container{
-height:300px;
-}
-
-.summary{
-line-height:1.8;
-font-size:15px;
-}
-
-.footer{
-margin-top:15px;
-text-align:center;
-color:#999;
-}
-
-@media(max-width:900px){
-
-.grid{
-grid-template-columns:1fr;
-}
-
-}
-
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
+body{background:#030b18;color:#fff;padding:15px}
+.header{background:#071a35;border:1px solid #00bfff;padding:20px;border-radius:12px;text-align:center;box-shadow:0 0 20px #00bfff55}
+.header h1{color:#ff5252}
+.tabs{display:flex;gap:10px;margin:15px 0}
+.tab{padding:10px 18px;border:none;border-radius:8px;background:#0b2547;color:#fff;cursor:pointer}
+.tab.active{background:#00bfff;color:#000;font-weight:bold}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:15px}
+.card,.panel{background:#071a35;border:1px solid #00bfff;border-radius:12px;padding:15px;box-shadow:0 0 10px #00bfff33}
+.card{text-align:center}
+.card h2{font-size:36px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+canvas{max-height:320px}
+ul{margin-left:20px}
 </style>
 </head>
-
 <body>
-
 <div class="header">
-
 <h1>SMART MONITORING KEBAKARAN</h1>
-
-<p>
-Pos Kesehatan Kejadian Kebakaran Kemayoran
-<br>
-Update : 5 Juni 2026 | 07.00 WIB
-</p>
-
+<p>Dashboard Pos Kesehatan Kebakaran Jakarta Pusat</p>
 </div>
 
+<div class="tabs">
+<button class="tab active" onclick="showLoc('kem',this)">Kemayoran Gempol</button>
+<button class="tab" onclick="showLoc('joh',this)">Johar Baru</button>
+</div>
+
+<div id="kem" class="loc">
 <div class="cards">
-
-<div class="card red">
-<h2>1</h2>
-<p>Kejadian Kebakaran</p>
+<div class="card"><h2>250</h2><p>Rumah</p></div>
+<div class="card"><h2>330</h2><p>KK</p></div>
+<div class="card"><h2>678</h2><p>Jiwa</p></div>
+<div class="card"><h2>253</h2><p>Total Pasien</p></div>
+</div>
+<div class="grid">
+<div class="panel"><h3>Sebaran Diagnosa</h3><canvas id="diagKem"></canvas></div>
+<div class="panel"><h3>Jenis Kelamin</h3><canvas id="genderKem"></canvas></div>
+</div>
 </div>
 
-<div class="card orange">
-<h2>250</h2>
-<p>Rumah Terdampak</p>
-</div>
-
-<div class="card blue">
-<h2>678</h2>
-<p>Pengungsi</p>
-</div>
-
-<div class="card green">
-<h2>253</h2>
-<p>Total Pasien</p>
-</div>
-
-</div>
-
+<div id="joh" class="loc" style="display:none">
 <div class="cards">
-
-<div class="card blue">
-<h2>330</h2>
-<p>KK Terdampak</p>
+<div class="card"><h2>36</h2><p>Rumah</p></div>
+<div class="card"><h2>61</h2><p>KK</p></div>
+<div class="card"><h2>240</h2><p>Jiwa</p></div>
+<div class="card"><h2>72</h2><p>Total Pasien</p></div>
 </div>
-
-<div class="card green">
-<h2>251</h2>
-<p>Rawat Jalan</p>
-</div>
-
-<div class="card red">
-<h2>2</h2>
-<p>Rawat Inap</p>
-</div>
-
-<div class="card orange">
-<h2>2</h2>
-<p>Pos Kesehatan</p>
-</div>
-
-</div>
-
 <div class="grid">
-
-<div class="panel">
-
-<div class="panel-title">
-Tren Pelayanan Pasien
+<div class="panel"><h3>Sebaran Diagnosa</h3><canvas id="diagJoh"></canvas></div>
+<div class="panel"><h3>Jenis Kelamin</h3><canvas id="genderJoh"></canvas></div>
 </div>
-
-<div class="chart-container">
-<canvas id="trendChart"></canvas>
-</div>
-
-</div>
-
-<div class="panel">
-
-<div class="panel-title">
-Sebaran Jenis Kelamin
-</div>
-
-<div class="chart-container">
-<canvas id="genderChart"></canvas>
-</div>
-
-</div>
-
-</div>
-
-<div class="grid">
-
-<div class="panel">
-
-<div class="panel-title">
-Sebaran Diagnosa
-</div>
-
-<div class="chart-container">
-<canvas id="diagnosaChart"></canvas>
-</div>
-
-</div>
-
-<div class="panel">
-
-<div class="panel-title">
-Ringkasan Kejadian
-</div>
-
-<div class="summary">
-
-<b>Lokasi :</b><br>
-Jl. Kemayoran Gempol RT 02 RW 05
-Kel. Kebon Kosong
-Kec. Kemayoran
-Jakarta Pusat
-
-<br><br>
-
-<b>Jumlah Jiwa :</b> 678 Orang
-
-<br>
-
-<b>KK :</b> 330 KK
-
-<br>
-
-<b>Rumah :</b> 250 Rumah
-
-<br><br>
-
-<b>RS Rujukan :</b>
-
-<ul>
-<li>RSUD Kemayoran</li>
-<li>RSUD Tarakan</li>
-<li>RS Hermina Kemayoran</li>
-</ul>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="panel">
-
-<div class="panel-title">
-Upaya Kesehatan Yang Dilakukan
-</div>
-
-<ul style="line-height:2">
-
-<li>Mensiagakan Tenaga Kesehatan 24 Jam</li>
-
-<li>Mensiagakan Ambulans 24 Jam</li>
-
-<li>Pelayanan Sub Klaster Kesehatan</li>
-
-<li>Pemantauan dan Pelaporan Berkala</li>
-
-<li>Rujukan ke RSUD Kemayoran dan RSUD Tarakan</li>
-
-</ul>
-
-</div>
-
-<div class="footer">
-SMART MONITORING KEBAKARAN © 2026
 </div>
 
 <script>
+function showLoc(id,btn){
+ document.querySelectorAll('.loc').forEach(x=>x.style.display='none');
+ document.getElementById(id).style.display='block';
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+ btn.classList.add('active');
+}
 
-new Chart(
-document.getElementById('genderChart'),
-{
-type:'doughnut',
-data:{
-labels:[
-'Laki-laki',
-'Perempuan'
-],
-datasets:[{
-data:[
-124,
-129
-]
-}]
-}
-}
-);
+new Chart(document.getElementById('diagKem'),{
+ type:'bar',
+ data:{labels:['Hipertensi','Headache','Nasofaringitis','Panic','Dispnea'],
+ datasets:[{data:[46,24,19,5,4]}]},
+ options:{plugins:{legend:{display:false}}}
+});
+new Chart(document.getElementById('genderKem'),{
+ type:'doughnut',
+ data:{labels:['Laki-laki','Perempuan'],datasets:[{data:[124,129]}]}
+});
 
-new Chart(
-document.getElementById('diagnosaChart'),
-{
-type:'pie',
-data:{
-labels:[
-'Hipertensi',
-'Headache',
-'Nasofaringitis',
-'Panic Disorder',
-'Dispnea'
-],
-datasets:[{
-data:[
-46,
-24,
-19,
-5,
-4
-]
-}]
-}
-}
-);
+new Chart(document.getElementById('diagJoh'),{
+ type:'bar',
+ data:{labels:['Hipertensi','Headache','Nasofaringitis'],
+ datasets:[{data:[15,16,1]}]},
+ options:{plugins:{legend:{display:false}}}
+});
+new Chart(document.getElementById('genderJoh'),{
+ type:'doughnut',
+ data:{labels:['Laki-laki','Perempuan'],datasets:[{data:[27,45]}]}
+});
 
-new Chart(
-document.getElementById('trendChart'),
-{
-type:'bar',
-data:{
-labels:[
-'1 Juni',
-'2-3 Juni',
-'3 Juni',
-'4 Juni Pagi',
-'4 Juni Sore',
-'5 Juni'
-],
-datasets:[{
-label:'Jumlah Pasien',
-data:[
-14,
-102,
-58,
-66,
-55,
-71
-]
-}]
-}
-}
-);
-
+anime({targets:'.card',translateY:[30,0],opacity:[0,1],delay:anime.stagger(100)});
+anime({targets:'.panel',scale:[0.9,1],opacity:[0,1],delay:anime.stagger(150)});
 </script>
-
 </body>
-</html>
+</html>'''
+path = "/mnt/data/index.html"
+Path(path).write_text(html, encoding="utf-8")
+print(path)
