@@ -1,342 +1,117 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html = """<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>INFOGRAFIS PELAYANAN KESEHATAN</title>
-
+<title>Infografis Pelayanan Kesehatan</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI',sans-serif;
-}
-
-body{
-background:#030b18;
-color:white;
-padding:15px;
-}
-
-.header{
-background:#071a35;
-border:1px solid #00bfff;
-padding:20px;
-border-radius:10px;
-margin-bottom:15px;
-box-shadow:0 0 15px #00bfff55;
-text-align:center;
-}
-
-.header h1{
-color:#ffffff;
-font-size:42px;
-font-weight:800;
-line-height:1.1;
-text-transform:uppercase;
-}
-
-.header p{
-color:#6fd8ff;
-margin-top:10px;
-font-size:18px;
-}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:15px;
-margin-bottom:15px;
-}
-
-.card{
-padding:20px;
-border-radius:10px;
-text-align:center;
-background:#071a35;
-}
-
-.card h2{
-font-size:42px;
-}
-
-.red{
-border:2px solid #ff3b3b;
-box-shadow:0 0 15px #ff3b3b44;
-}
-
-.orange{
-border:2px solid orange;
-box-shadow:0 0 15px orange;
-}
-
-.blue{
-border:2px solid #00bfff;
-box-shadow:0 0 15px #00bfff55;
-}
-
-.green{
-border:2px solid #00ff88;
-box-shadow:0 0 15px #00ff8855;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-margin-bottom:15px;
-}
-
-.panel{
-background:#071a35;
-border:1px solid #00bfff;
-border-radius:10px;
-padding:15px;
-box-shadow:0 0 10px #00bfff33;
-}
-
-.panel-title{
-font-size:18px;
-color:#6fd8ff;
-margin-bottom:15px;
-}
-
-.chart-container{
-height:300px;
-}
-
-.summary{
-line-height:1.8;
-font-size:15px;
-}
-
-.footer{
-margin-top:15px;
-text-align:center;
-color:#999;
-}
-
-@media(max-width:900px){
-
-.grid{
-grid-template-columns:1fr;
-}
-
-}
-
+body{margin:0;background:#031126;color:#fff;font-family:Segoe UI,sans-serif}
+.container{max-width:1600px;margin:auto;padding:12px}
+.header{background:#041c3d;border:1px solid #00c8ff;border-radius:12px;text-align:center;padding:20px;box-shadow:0 0 20px #00c8ff55}
+.header h1{margin:0;font-size:52px;line-height:1;color:#fff}
+.header h2{margin:8px 0;color:#ff3d3d}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.card{background:#041c3d;border-radius:12px;padding:18px;text-align:center}
+.red{border:2px solid #ff3d3d}.orange{border:2px solid orange}.blue{border:2px solid #00c8ff}.green{border:2px solid #00ff88}
+.card h3{font-size:46px;margin:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.panel{background:#041c3d;border:1px solid #00c8ff;border-radius:12px;padding:15px}
+.panel h3{margin-top:0;color:#38cfff}
+.chartwrap{height:360px}
+.summary-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+ul{line-height:2}
+@media(max-width:900px){.cards,.row,.summary-grid{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
-
+<div class="container">
 <div class="header">
-
-<h1>
-INFOGRAFIS<br>
-PELAYANAN KESEHATAN
-</h1>
-
-<p>
-KEJADIAN KEBAKARAN
-<br>
-Pos Kesehatan Kejadian Kebakaran Kemayoran
-<br>
-Update : 5 Juni 2026 | 07.00 WIB
-</p>
-
+<h1>INFOGRAFIS<br>PELAYANAN KESEHATAN</h1>
+<h2>KEJADIAN KEBAKARAN</h2>
+<div>Pos Kesehatan Kejadian Kebakaran Kemayoran</div>
+<div>Update : 5 Juni 2026 | 07.00 WIB</div>
 </div>
 
 <div class="cards">
-
-<div class="card red">
-<h2>1</h2>
-<p>Kejadian Kebakaran</p>
-</div>
-
-<div class="card orange">
-<h2>250</h2>
-<p>Rumah Terdampak</p>
-</div>
-
-<div class="card blue">
-<h2>678</h2>
-<p>Pengungsi</p>
-</div>
-
-<div class="card green">
-<h2>253</h2>
-<p>Total Pasien</p>
-</div>
-
+<div class="card red"><h3>1</h3>Kejadian Kebakaran</div>
+<div class="card orange"><h3>250</h3>Rumah Terdampak</div>
+<div class="card blue"><h3>678</h3>Pengungsi</div>
+<div class="card green"><h3>253</h3>Total Pasien</div>
 </div>
 
 <div class="cards">
-
-<div class="card blue">
-<h2>330</h2>
-<p>KK Terdampak</p>
+<div class="card blue"><h3>330</h3>KK Terdampak</div>
+<div class="card green"><h3>251</h3>Rawat Jalan</div>
+<div class="card red"><h3>2</h3>Rawat Inap</div>
+<div class="card orange"><h3>2</h3>Pos Kesehatan</div>
 </div>
 
-<div class="card green">
-<h2>251</h2>
-<p>Rawat Jalan</p>
-</div>
-
-<div class="card red">
-<h2>2</h2>
-<p>Rawat Inap</p>
-</div>
-
-<div class="card orange">
-<h2>2</h2>
-<p>Pos Kesehatan</p>
-</div>
-
-</div>
-
+<div class="row">
 <div class="panel">
-
-<div class="panel-title">
-Sebaran Jenis Kelamin
+<h3>SEBARAN JENIS KELAMIN</h3>
+<div class="chartwrap"><canvas id="gender"></canvas></div>
 </div>
-
-<div class="chart-container">
-<canvas id="genderChart"></canvas>
-</div>
-
-</div>
-
-<br>
-
-<div class="grid">
-
 <div class="panel">
-
-<div class="panel-title">
-Sebaran Diagnosa
+<h3>DIAGNOSA 5 PENYAKIT TERBANYAK</h3>
+<div class="chartwrap"><canvas id="diag"></canvas></div>
+</div>
 </div>
 
-<div class="chart-container">
-<canvas id="diagnosaChart"></canvas>
-</div>
-
-</div>
-
+<div class="row">
 <div class="panel">
-
-<div class="panel-title">
-Ringkasan Kejadian
-</div>
-
-<div class="summary">
-
+<h3>RINGKASAN KEJADIAN</h3>
+<div class="summary-grid">
+<div>
 <b>Lokasi :</b><br>
-Jl. Kemayoran Gempol RT 02 RW 05
-Kel. Kebon Kosong
-Kec. Kemayoran
+Jl. Kemayoran Gempol RT 02 RW 05<br>
+Kel. Kebon Kosong, Kec. Kemayoran<br>
 Jakarta Pusat
-
-<br><br>
-
-<b>Jumlah Jiwa :</b> 678 Orang
+</div>
+<div><b>Jumlah Jiwa</b><br>678 Orang<br><br><b>KK</b><br>330 KK</div>
+<div><b>Rumah</b><br>250 Rumah</div>
+</div>
 <br>
-
-<b>KK :</b> 330 KK
-<br>
-
-<b>Rumah :</b> 250 Rumah
-
-<br><br>
-
 <b>RS Rujukan :</b>
-
 <ul>
 <li>RSUD Kemayoran</li>
 <li>RSUD Tarakan</li>
 <li>RS Hermina Kemayoran</li>
 </ul>
-
-</div>
-
-</div>
-
 </div>
 
 <div class="panel">
-
-<div class="panel-title">
-Upaya Kesehatan Yang Dilakukan
-</div>
-
-<ul style="line-height:2">
-
+<h3>UPAYA KESEHATAN YANG DILAKUKAN</h3>
+<ul>
 <li>Mensiagakan Tenaga Kesehatan 24 Jam</li>
 <li>Mensiagakan Ambulans 24 Jam</li>
 <li>Pelayanan Sub Klaster Kesehatan</li>
 <li>Pemantauan dan Pelaporan Berkala</li>
 <li>Rujukan ke RSUD Kemayoran dan RSUD Tarakan</li>
-
 </ul>
-
 </div>
-
-<div class="footer">
-INFOGRAFIS PELAYANAN KESEHATAN © 2026
+</div>
 </div>
 
 <script>
-
-new Chart(
-document.getElementById('genderChart'),
-{
+new Chart(document.getElementById('gender'),{
 type:'doughnut',
-data:{
-labels:[
-'Laki-laki',
-'Perempuan'
-],
-datasets:[{
-data:[
-124,
-129
-]
-}]
-}
-}
-);
+data:{labels:['Laki-laki','Perempuan'],datasets:[{data:[124,129]}]},
+options:{maintainAspectRatio:false,plugins:{legend:{position:'right'}}}
+});
 
-new Chart(
-document.getElementById('diagnosaChart'),
-{
+new Chart(document.getElementById('diag'),{
 type:'pie',
-data:{
-labels:[
-'Hipertensi',
-'Headache',
-'Nasofaringitis',
-'Panic Disorder',
-'Dispnea'
-],
-datasets:[{
-data:[
-46,
-24,
-19,
-5,
-4
-]
-}]
-}
-}
-);
-
+data:{labels:['Hipertensi','Headache','Nasofaringitis','Panic Disorder','Dispnea'],
+datasets:[{data:[46,24,19,5,4]}]},
+options:{maintainAspectRatio:false,plugins:{legend:{position:'right'}}}
+});
 </script>
-
 </body>
-</html>
-```
+</html>"""
+path="/mnt/data/index_premium_kebakaran.html"
+Path(path).write_text(html,encoding="utf-8")
+print(path)
